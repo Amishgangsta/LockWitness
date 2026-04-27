@@ -10,9 +10,12 @@ import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
 import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoIncidentUpdater
+import com.lockwitness.app.video.Camera2VideoCaptureClient
+import com.lockwitness.app.video.VideoIncidentUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class LockWitnessDeviceAdminReceiver : DeviceAdminReceiver() {
@@ -32,20 +35,30 @@ class LockWitnessDeviceAdminReceiver : DeviceAdminReceiver() {
         }
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            val settingsRepository = SettingsRepository.create(appContext)
             val incidentRepository = SecurityIncidentRepository(
                 LockWitnessDatabase.getInstance(appContext).securityIncidentDao()
             )
             val incidentId = FailedUnlockIncidentCreator(
-                settingsRepository = SettingsRepository.create(appContext),
+                settingsRepository = settingsRepository,
                 incidentRepository = incidentRepository,
                 deviceInfoProvider = AndroidDeviceInfoProvider(appContext)
             ).createIncidentShell(failedAttemptCount)
 
             if (incidentId != null) {
+                val settings = settingsRepository.settings.first()
                 PhotoIncidentUpdater(
                     incidentRepository = incidentRepository,
                     photoCaptureClient = Camera2PhotoCaptureClient(appContext)
                 ).updateIncidentPhoto(incidentId)
+
+                VideoIncidentUpdater(
+                    incidentRepository = incidentRepository,
+                    videoCaptureClient = Camera2VideoCaptureClient(appContext)
+                ).updateIncidentVideo(
+                    incidentId = incidentId,
+                    durationSeconds = settings.videoDurationSeconds
+                )
             }
         }
     }

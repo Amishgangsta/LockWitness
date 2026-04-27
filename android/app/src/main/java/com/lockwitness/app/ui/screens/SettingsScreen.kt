@@ -44,6 +44,8 @@ import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.SettingsState
 import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoCaptureResult
+import com.lockwitness.app.video.Camera2VideoCaptureClient
+import com.lockwitness.app.video.VideoCaptureResult
 import kotlinx.coroutines.launch
 
 @Composable
@@ -63,6 +65,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         )
     }
     var testPhotoStatus by remember { mutableStateOf("No test photo captured.") }
+    var testVideoStatus by remember { mutableStateOf("No test video captured.") }
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -72,6 +75,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         } else {
             "Camera permission denied."
         }
+        testVideoStatus = testPhotoStatus
     }
 
     DisposableEffect(lifecycleOwner, context) {
@@ -144,6 +148,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         PhotoPermissionAndTestCard(
             isCameraPermissionGranted = isCameraPermissionGranted,
             testPhotoStatus = testPhotoStatus,
+            testVideoStatus = testVideoStatus,
             onRequestPermission = {
                 cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
             },
@@ -156,6 +161,18 @@ fun SettingsScreen(contentPadding: PaddingValues) {
 
                         is PhotoCaptureResult.Failure ->
                             "Test photo failed: ${result.reason}"
+                    }
+                }
+            },
+            onTestVideoCapture = {
+                scope.launch {
+                    testVideoStatus = "Attempting ${settings.videoDurationSeconds}s test video capture..."
+                    testVideoStatus = when (val result = Camera2VideoCaptureClient(context).captureFrontVideo(settings.videoDurationSeconds)) {
+                        is VideoCaptureResult.Success ->
+                            "Test video saved locally: ${result.file.name}"
+
+                        is VideoCaptureResult.Failure ->
+                            "Test video failed: ${result.reason}"
                     }
                 }
             }
@@ -304,8 +321,10 @@ private fun DeviceAdminStatusCard(
 private fun PhotoPermissionAndTestCard(
     isCameraPermissionGranted: Boolean,
     testPhotoStatus: String,
+    testVideoStatus: String,
     onRequestPermission: () -> Unit,
-    onTestPhotoCapture: () -> Unit
+    onTestPhotoCapture: () -> Unit,
+    onTestVideoCapture: () -> Unit
 ) {
     SettingsSectionCard {
         Text(
@@ -336,9 +355,19 @@ private fun PhotoPermissionAndTestCard(
             ) {
                 Text("Test Photo")
             }
+            Button(
+                onClick = onTestVideoCapture,
+                enabled = isCameraPermissionGranted
+            ) {
+                Text("Test Video")
+            }
         }
         Text(
             text = testPhotoStatus,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = testVideoStatus,
             style = MaterialTheme.typography.bodyMedium
         )
     }

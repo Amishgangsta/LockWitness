@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 5 — Photo Capture.
+Phase 6 — Video Capture.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -12,13 +12,14 @@ Phase 2 settings persistence unit tests passed.
 Phase 3 local incident Room persistence tests passed.
 Phase 4 failed-unlock incident shell creation logic unit tests passed.
 Phase 5 photo hash/status/failure-resilience unit tests passed.
+Phase 6 video hash/status/duration/failure-resilience unit tests passed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
-Video, location provider, email/share/export, ads, billing, and cloud features.
-Runtime launch, Device Admin activation, failed-unlock callback behavior, and real camera capture remain unverified on device/emulator.
+Location provider, email/share/export, ads, billing, and cloud features.
+Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, and real video capture remain unverified on device/emulator.
 
 ## Deferred Features
 Ads, billing, cloud, PDF export, email provider integration.
@@ -41,7 +42,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-5-after-20260427-193646.zip
+C:\Projects\LockWitness\backups\phase-6-after-20260427-194706.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
@@ -49,12 +50,14 @@ C:\Projects\LockWitness\backups\phase-5-after-20260427-193646.zip
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 7 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 9 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 13 tests, 0 failures, 0 errors.
+2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 18 tests, 0 failures, 0 errors.
+2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 5 only until user authorizes the next phase.
+Phase 6 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -140,3 +143,17 @@ C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
 - Build result: passed with exit code 0.
 - Runtime verification: not performed; requires physical Android device/emulator test with camera permission granted.
 - Video/location-provider/email/share/export/ads/billing/cloud/SMS/audio/stealth work performed: none.
+
+## Last Phase 6 Verification
+- Branch: main
+- Starting commit: 653e27f21932bc6309756eb87a738967d4feea6b
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-6-before-20260427-194122.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-6-after-20260427-194706.zip
+- Video capture implementation: Camera2 front-camera short video capture with camera permission gate.
+- Audio recording: not implemented; no RECORD_AUDIO permission, setAudioSource call, or MediaRecorder.AudioSource usage found by source scan.
+- Failed-unlock video path: incident shell is created first, photo updater runs independently, then video updater updates videoPath, videoSha256, and videoStatus without overwriting photo fields.
+- Tests: `VideoIncidentUpdaterTest` passed 5 tests; full `testDebugUnitTest` passed 18 tests total.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires physical Android device/emulator test with camera permission granted.
+- Location-provider/email/share/export/ads/billing/cloud/SMS/audio/stealth work performed: none.

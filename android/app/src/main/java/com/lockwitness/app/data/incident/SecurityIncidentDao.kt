@@ -40,4 +40,22 @@ interface SecurityIncidentDao {
         photoStatus: String,
         notes: String
     ): Int
+
+    @Query(
+        """
+        UPDATE security_incidents
+        SET videoPath = :videoPath,
+            videoSha256 = :videoSha256,
+            videoStatus = :videoStatus,
+            notes = :notes
+        WHERE id = :id
+        """
+    )
+    suspend fun updateVideoResult(
+        id: Long,
+        videoPath: String?,
+        videoSha256: String?,
+        videoStatus: String,
+        notes: String
+    ): Int
 }

@@ -34,4 +34,19 @@ class SecurityIncidentRepository(
             photoStatus = photoStatus,
             notes = notes
         )
+
+    suspend fun updateVideoResult(
+        id: Long,
+        videoPath: String?,
+        videoSha256: String?,
+        videoStatus: String,
+        notes: String
+    ): Int =
+        dao.updateVideoResult(
+            id = id,
+            videoPath = videoPath,
+            videoSha256 = videoSha256,
+            videoStatus = videoStatus,
+            notes = notes
+        )
 }
