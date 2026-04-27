@@ -22,4 +22,22 @@ interface SecurityIncidentDao {
 
     @Query("DELETE FROM security_incidents")
     suspend fun clearAll()
+
+    @Query(
+        """
+        UPDATE security_incidents
+        SET photoPath = :photoPath,
+            imageSha256 = :imageSha256,
+            photoStatus = :photoStatus,
+            notes = :notes
+        WHERE id = :id
+        """
+    )
+    suspend fun updatePhotoResult(
+        id: Long,
+        photoPath: String?,
+        imageSha256: String?,
+        photoStatus: String,
+        notes: String
+    ): Int
 }

@@ -19,4 +19,19 @@ class SecurityIncidentRepository(
 
     suspend fun clearAll() =
         dao.clearAll()
+
+    suspend fun updatePhotoResult(
+        id: Long,
+        photoPath: String?,
+        imageSha256: String?,
+        photoStatus: String,
+        notes: String
+    ): Int =
+        dao.updatePhotoResult(
+            id = id,
+            photoPath = photoPath,
+            imageSha256 = imageSha256,
+            photoStatus = photoStatus,
+            notes = notes
+        )
 }

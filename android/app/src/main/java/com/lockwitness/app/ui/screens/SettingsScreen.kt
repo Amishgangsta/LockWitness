@@ -1,5 +1,9 @@
 package com.lockwitness.app.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -31,12 +35,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lockwitness.app.admin.DeviceAdminStatus
 import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.SettingsState
+import com.lockwitness.app.photo.Camera2PhotoCaptureClient
+import com.lockwitness.app.photo.PhotoCaptureResult
 import kotlinx.coroutines.launch
 
 @Composable
@@ -49,11 +56,31 @@ fun SettingsScreen(contentPadding: PaddingValues) {
     var isDeviceAdminActive by remember(context) {
         mutableStateOf(DeviceAdminStatus.isActive(context))
     }
+    var isCameraPermissionGranted by remember(context) {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED
+        )
+    }
+    var testPhotoStatus by remember { mutableStateOf("No test photo captured.") }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        isCameraPermissionGranted = granted
+        testPhotoStatus = if (granted) {
+            "Camera permission granted."
+        } else {
+            "Camera permission denied."
+        }
+    }
 
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 isDeviceAdminActive = DeviceAdminStatus.isActive(context)
+                isCameraPermissionGranted =
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                        PackageManager.PERMISSION_GRANTED
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -104,10 +131,33 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         )
         SettingsToggleRow(
             title = "Photo capture",
-            description = "Default: on",
+            description = if (isCameraPermissionGranted) {
+                "Default: on; camera permission granted"
+            } else {
+                "Default: on; camera permission not granted"
+            },
             checked = settings.photoCaptureEnabled,
             onCheckedChange = { enabled ->
                 scope.launch { repository.setPhotoCaptureEnabled(enabled) }
+            }
+        )
+        PhotoPermissionAndTestCard(
+            isCameraPermissionGranted = isCameraPermissionGranted,
+            testPhotoStatus = testPhotoStatus,
+            onRequestPermission = {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            },
+            onTestPhotoCapture = {
+                scope.launch {
+                    testPhotoStatus = "Attempting test photo capture..."
+                    testPhotoStatus = when (val result = Camera2PhotoCaptureClient(context).captureFrontPhoto()) {
+                        is PhotoCaptureResult.Success ->
+                            "Test photo saved locally: ${result.file.name}"
+
+                        is PhotoCaptureResult.Failure ->
+                            "Test photo failed: ${result.reason}"
+                    }
+                }
             }
         )
         SettingsToggleRow(
@@ -247,6 +297,50 @@ private fun DeviceAdminStatusCard(
                 Text(if (isActive) "Active" else "Activate")
             }
         }
+    }
+}
+
+@Composable
+private fun PhotoPermissionAndTestCard(
+    isCameraPermissionGranted: Boolean,
+    testPhotoStatus: String,
+    onRequestPermission: () -> Unit,
+    onTestPhotoCapture: () -> Unit
+) {
+    SettingsSectionCard {
+        Text(
+            text = "Camera permission",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            text = if (isCameraPermissionGranted) {
+                "Status: granted"
+            } else {
+                "Status: not granted. Photo capture requires camera access."
+            },
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = onRequestPermission,
+                enabled = !isCameraPermissionGranted
+            ) {
+                Text(if (isCameraPermissionGranted) "Granted" else "Grant")
+            }
+            Button(
+                onClick = onTestPhotoCapture,
+                enabled = isCameraPermissionGranted
+            ) {
+                Text("Test Photo")
+            }
+        }
+        Text(
+            text = testPhotoStatus,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 

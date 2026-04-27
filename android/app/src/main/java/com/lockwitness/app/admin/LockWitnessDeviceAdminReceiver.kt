@@ -8,6 +8,8 @@ import android.os.Build
 import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
+import com.lockwitness.app.photo.Camera2PhotoCaptureClient
+import com.lockwitness.app.photo.PhotoIncidentUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,13 +32,21 @@ class LockWitnessDeviceAdminReceiver : DeviceAdminReceiver() {
         }
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            FailedUnlockIncidentCreator(
+            val incidentRepository = SecurityIncidentRepository(
+                LockWitnessDatabase.getInstance(appContext).securityIncidentDao()
+            )
+            val incidentId = FailedUnlockIncidentCreator(
                 settingsRepository = SettingsRepository.create(appContext),
-                incidentRepository = SecurityIncidentRepository(
-                    LockWitnessDatabase.getInstance(appContext).securityIncidentDao()
-                ),
+                incidentRepository = incidentRepository,
                 deviceInfoProvider = AndroidDeviceInfoProvider(appContext)
             ).createIncidentShell(failedAttemptCount)
+
+            if (incidentId != null) {
+                PhotoIncidentUpdater(
+                    incidentRepository = incidentRepository,
+                    photoCaptureClient = Camera2PhotoCaptureClient(appContext)
+                ).updateIncidentPhoto(incidentId)
+            }
         }
     }
 }
