@@ -36,7 +36,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-0-after-20260427-174015.zip
+C:\Projects\LockWitness\backups\phase-0.1-after-20260427-174354.zip
 
 ## Last Verified Build
 None yet.
@@ -58,4 +58,12 @@ C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
 - Post-phase backup: C:\Projects\LockWitness\backups\phase-0-after-20260427-174015.zip
 - Required control files: present
 - Required project folders: present
+- App feature work performed: none
+
+## Last Phase 0.1 Verification
+- Branch: main
+- Starting commit: b4d3d8f68c57719e203df9cb4b73980154bc36af
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-0.1-before-20260427-174250.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-0.1-after-20260427-174354.zip
+- Control framework document cleaned to readable Markdown doctrine only.
 - App feature work performed: none
