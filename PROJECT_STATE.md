@@ -4,16 +4,17 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 0 — Control setup.
+Phase 1 — App skeleton.
 
 ## Verified Features
-None yet.
+Phase 1 Android app skeleton build verified.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
-All app features.
+All security/evidence features.
+Runtime launch and navigation remain unverified on device/emulator.
 
 ## Deferred Features
 Ads, billing, cloud, PDF export, email provider integration.
@@ -36,16 +37,16 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-0.1-after-20260427-174354.zip
+C:\Projects\LockWitness\backups\phase-1-after-20260427-181311.zip
 
 ## Last Verified Build
-None yet.
+2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 0 only.
+Phase 1 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -67,3 +68,15 @@ C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
 - Post-phase backup: C:\Projects\LockWitness\backups\phase-0.1-after-20260427-174354.zip
 - Control framework document cleaned to readable Markdown doctrine only.
 - App feature work performed: none
+
+## Last Phase 1 Verification
+- Branch: main
+- Starting commit: 0b7b17f994c93ecc21a0d4b4d1014d9838b716b6
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-1-before-20260427-175338.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-1-after-20260427-181311.zip
+- Android project path: C:\Projects\LockWitness\android
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires device/emulator test.
+- App feature work performed: skeleton/navigation placeholders only.
+- Security/camera/location/ads/billing/email work performed: none.
