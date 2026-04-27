@@ -4,16 +4,17 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 1 — App skeleton.
+Phase 2 — Settings + Toggles.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
+Phase 2 settings persistence unit tests passed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
-All security/evidence features.
+All security/evidence capture features.
 Runtime launch and navigation remain unverified on device/emulator.
 
 ## Deferred Features
@@ -37,16 +38,17 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-1-after-20260427-181311.zip
+C:\Projects\LockWitness\backups\phase-2-after-20260427-183428.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
+2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 3 tests, 0 failures, 0 errors.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 1 only until user authorizes the next phase.
+Phase 2 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -80,3 +82,15 @@ C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
 - Runtime verification: not performed; requires device/emulator test.
 - App feature work performed: skeleton/navigation placeholders only.
 - Security/camera/location/ads/billing/email work performed: none.
+
+## Last Phase 2 Verification
+- Branch: main
+- Starting commit: 75ea4fe4dbc787574aa3372b4660353ad39ce712
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-2-before-20260427-182722.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-2-after-20260427-183428.zip
+- Settings persistence: DataStore Preferences.
+- Settings tests: `SettingsRepositoryTest` passed 3 tests, 0 failures, 0 errors.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires device/emulator test.
+- Security/camera/location/ads/billing/email provider work performed: none.
