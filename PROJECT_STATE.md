@@ -9,6 +9,9 @@ Phase 0 — Control setup.
 ## Verified Features
 None yet.
 
+## Verified Control Status
+Phase 0 repository control files and required folders verified on 2026-04-27.
+
 ## Unverified Features
 All app features.
 
@@ -33,7 +36,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-None yet.
+C:\Projects\LockWitness\backups\phase-0-after-20260427-174015.zip
 
 ## Last Verified Build
 None yet.
@@ -46,3 +49,13 @@ Phase 0 only.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
+
+## Last Phase 0 Verification
+- Branch: main
+- Commit before verification: e9bde10dfaeb5d7733eb6d95cde6fb0e12d4cc9b
+- Pre-phase checkpoint commit: 4bc2abe
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-0-before-20260427-173944.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-0-after-20260427-174015.zip
+- Required control files: present
+- Required project folders: present
+- App feature work performed: none
