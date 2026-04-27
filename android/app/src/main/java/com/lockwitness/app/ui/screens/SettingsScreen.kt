@@ -20,14 +20,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.lockwitness.app.admin.DeviceAdminStatus
 import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.SettingsState
 import kotlinx.coroutines.launch
@@ -35,9 +42,25 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(contentPadding: PaddingValues) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val repository = remember(context) { SettingsRepository.create(context) }
     val settings by repository.settings.collectAsState(initial = SettingsState.Defaults)
     val scope = rememberCoroutineScope()
+    var isDeviceAdminActive by remember(context) {
+        mutableStateOf(DeviceAdminStatus.isActive(context))
+    }
+
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isDeviceAdminActive = DeviceAdminStatus.isActive(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -56,12 +79,27 @@ fun SettingsScreen(contentPadding: PaddingValues) {
             style = MaterialTheme.typography.bodyMedium
         )
 
+        DeviceAdminStatusCard(
+            isActive = isDeviceAdminActive,
+            onActivateClick = {
+                context.startActivity(DeviceAdminStatus.activationIntent(context))
+            }
+        )
+
         SettingsToggleRow(
             title = "Master monitoring",
-            description = "Default: off",
-            checked = settings.masterMonitoringEnabled,
+            description = if (isDeviceAdminActive) {
+                "Default: off; Device Admin active"
+            } else {
+                "Requires Device Admin activation"
+            },
+            checked = settings.masterMonitoringEnabled && isDeviceAdminActive,
             onCheckedChange = { enabled ->
-                scope.launch { repository.setMasterMonitoringEnabled(enabled) }
+                if (enabled && !isDeviceAdminActive) {
+                    context.startActivity(DeviceAdminStatus.activationIntent(context))
+                } else {
+                    scope.launch { repository.setMasterMonitoringEnabled(enabled) }
+                }
             }
         )
         SettingsToggleRow(
@@ -174,6 +212,40 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                 enabled = false,
                 label = { Text("Status: unavailable in Phase 2") }
             )
+        }
+    }
+}
+
+@Composable
+private fun DeviceAdminStatusCard(
+    isActive: Boolean,
+    onActivateClick: () -> Unit
+) {
+    SettingsSectionCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Device Admin",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = if (isActive) {
+                        "Status: active"
+                    } else {
+                        "Status: inactive"
+                    },
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Button(
+                onClick = onActivateClick,
+                enabled = !isActive
+            ) {
+                Text(if (isActive) "Active" else "Activate")
+            }
         }
     }
 }

@@ -4,19 +4,20 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 3 — Local Data Model.
+Phase 4 — Device Admin + Failed Unlock Detection.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
 Phase 2 settings persistence unit tests passed.
 Phase 3 local incident Room persistence tests passed.
+Phase 4 failed-unlock incident shell creation logic unit tests passed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
 All security/evidence capture features.
-Runtime launch and navigation remain unverified on device/emulator.
+Runtime launch, Device Admin activation, and real failed-unlock callback behavior remain unverified on device/emulator.
 
 ## Deferred Features
 Ads, billing, cloud, PDF export, email provider integration.
@@ -39,18 +40,19 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-3-after-20260427-185140.zip
+C:\Projects\LockWitness\backups\phase-4-after-20260427-192659.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 3 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 7 tests, 0 failures, 0 errors.
+2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 9 tests, 0 failures, 0 errors.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 3 only until user authorizes the next phase.
+Phase 4 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -108,3 +110,17 @@ C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
 - Build result: passed with exit code 0.
 - Runtime verification: not performed; requires device/emulator test.
 - DeviceAdmin/camera/location-provider/email/share/export/ads/billing/cloud work performed: none.
+
+## Last Phase 4 Verification
+- Branch: main
+- Starting commit: 5b5c85c3b2bde19469294abffd402e94d48eacbd
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-4-before-20260427-191619.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-4-after-20260427-192659.zip
+- Device Admin receiver: added.
+- Device Admin policy XML: added.
+- Failed-unlock shell creator: creates local SecurityIncident shell when master monitoring is enabled.
+- Tests: `FailedUnlockIncidentCreatorTest` passed 2 tests; full `testDebugUnitTest` passed 9 tests total.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires physical Android device/emulator test with Device Admin enabled.
+- Camera/photo/video capture/location-provider/email/share/export/ads/billing/cloud/SMS/audio work performed: none.
