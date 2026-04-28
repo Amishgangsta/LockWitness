@@ -49,7 +49,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-12-after-20260427-232743.zip
+C:\Projects\LockWitness\backups\phase-12-after-20260427-234420.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
@@ -71,6 +71,8 @@ C:\Projects\LockWitness\backups\phase-12-after-20260427-232743.zip
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 52 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
+2026-04-27: Phase 12 re-verification `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android; XML test reports show 52 tests, 0 failures, 0 errors.
+2026-04-27: Phase 12 re-verification `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 
 ## Known Defects
 None yet.
@@ -297,3 +299,20 @@ Reported tested items:
 - Logcat review: crash logcat could not be completed because no Android device/emulator was attached; `adb logcat -d -b crash` timed out.
 - Runtime verification result: blocked. Diagnostics screen navigation, diagnostic actions, and logcat review were not runtime-verified in Codex.
 - App feature work performed: none.
+
+## Phase 12 Re-Verification
+- Branch: main
+- Starting commit: 296a5cd0947ffc09116c201b332369630712e52d
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-12-before-20260427-234243.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-12-after-20260427-234420.zip
+- Diagnostics UI: file evidence confirms Diagnostics destination and screen remain present.
+- Diagnostics checks: file evidence confirms Device Admin, camera permission, location permission, toggles, history/export/share availability, Free/Pro mode, app version, Android version, and device model checks remain present.
+- Manual diagnostics: file evidence confirms explicit user-action buttons invoke existing photo, video, location, export, and share chooser paths.
+- Runtime checklist: file evidence confirms Device Admin activation, wrong unlock, photo, video, location, history/detail, export, share chooser, and Free/Pro gate checklist items remain present.
+- Diagnostic result model: PASS, FAIL, WARNING, NOT_TESTED, and UNAVAILABLE remain present.
+- Tests: `.\gradlew.bat testDebugUnitTest` passed; XML reports show 52 tests, 0 failures, 0 errors.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Source scan: no case-sensitive hits for deprecated `android.hardware.Camera`, RECORD_AUDIO, SMS, accessibility-service, overlay permission, SMTP, or audio-source APIs; only Google test banner ad ID was found.
+- Runtime verification: not performed; requires physical Android device/emulator test.
+- App feature work performed: none during this re-verification pass.
