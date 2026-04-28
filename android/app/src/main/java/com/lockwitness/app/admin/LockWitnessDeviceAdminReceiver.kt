@@ -8,6 +8,8 @@ import android.os.Build
 import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
+import com.lockwitness.app.location.AndroidLocationSnapshotClient
+import com.lockwitness.app.location.LocationIncidentUpdater
 import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoIncidentUpdater
 import com.lockwitness.app.video.Camera2VideoCaptureClient
@@ -59,6 +61,11 @@ class LockWitnessDeviceAdminReceiver : DeviceAdminReceiver() {
                     incidentId = incidentId,
                     durationSeconds = settings.videoDurationSeconds
                 )
+
+                LocationIncidentUpdater(
+                    incidentRepository = incidentRepository,
+                    locationSnapshotClient = AndroidLocationSnapshotClient(appContext)
+                ).updateIncidentLocation(incidentId)
             }
         }
     }

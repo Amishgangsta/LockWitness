@@ -49,4 +49,23 @@ class SecurityIncidentRepository(
             videoStatus = videoStatus,
             notes = notes
         )
+
+    suspend fun updateLocationResult(
+        id: Long,
+        latitude: Double?,
+        longitude: Double?,
+        locationAccuracy: Float?,
+        locationProvider: String?,
+        locationStatus: String,
+        notes: String
+    ): Int =
+        dao.updateLocationResult(
+            id = id,
+            latitude = latitude,
+            longitude = longitude,
+            locationAccuracy = locationAccuracy,
+            locationProvider = locationProvider,
+            locationStatus = locationStatus,
+            notes = notes
+        )
 }

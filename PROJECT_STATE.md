@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 6 — Video Capture.
+Phase 7 — Location Snapshot.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -13,13 +13,14 @@ Phase 3 local incident Room persistence tests passed.
 Phase 4 failed-unlock incident shell creation logic unit tests passed.
 Phase 5 photo hash/status/failure-resilience unit tests passed.
 Phase 6 video hash/status/duration/failure-resilience unit tests passed.
+Phase 7 location status/update/failure-resilience unit tests passed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
-Location provider, email/share/export, ads, billing, and cloud features.
-Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, and real video capture remain unverified on device/emulator.
+Email/share/export, ads, billing, and cloud features.
+Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
 
 ## Deferred Features
 Ads, billing, cloud, PDF export, email provider integration.
@@ -42,7 +43,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-6-after-20260427-194706.zip
+C:\Projects\LockWitness\backups\phase-7-after-20260427-214533.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
@@ -52,12 +53,14 @@ C:\Projects\LockWitness\backups\phase-6-after-20260427-194706.zip
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 13 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 18 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
+2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 23 tests, 0 failures, 0 errors.
+2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 6 only until user authorizes the next phase.
+Phase 7 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -157,3 +160,17 @@ C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
 - Build result: passed with exit code 0.
 - Runtime verification: not performed; requires physical Android device/emulator test with camera permission granted.
 - Location-provider/email/share/export/ads/billing/cloud/SMS/audio/stealth work performed: none.
+
+## Last Phase 7 Verification
+- Branch: main
+- Starting commit: 80935f1beeeb9e97ac041b0826f6a6cfa23d1a1a
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-7-before-20260427-214123.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-7-after-20260427-214533.zip
+- Location snapshot implementation: Android LocationManager snapshot using enabled last-known providers with fine/coarse permission gate.
+- Location permission: ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION declared and surfaced in Settings with visible status/rationale and manual test-location action.
+- Failed-unlock location path: incident shell is created first, photo and video updaters run independently, then location updater updates latitude, longitude, accuracy, provider, and locationStatus without overwriting photo/video fields.
+- Tests: `LocationIncidentUpdaterTest` passed 5 tests; full `testDebugUnitTest` passed 23 tests total.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires physical Android device/emulator test with location permission granted and location services enabled.
+- Email/share/export/ads/billing/cloud/SMS/audio/stealth work performed: none.

@@ -42,6 +42,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lockwitness.app.admin.DeviceAdminStatus
 import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.SettingsState
+import com.lockwitness.app.location.AndroidLocationSnapshotClient
+import com.lockwitness.app.location.LocationSnapshotResult
 import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoCaptureResult
 import com.lockwitness.app.video.Camera2VideoCaptureClient
@@ -64,8 +66,12 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                 PackageManager.PERMISSION_GRANTED
         )
     }
+    var isLocationPermissionGranted by remember(context) {
+        mutableStateOf(context.hasLocationPermission())
+    }
     var testPhotoStatus by remember { mutableStateOf("No test photo captured.") }
     var testVideoStatus by remember { mutableStateOf("No test video captured.") }
+    var testLocationStatus by remember { mutableStateOf("No test location captured.") }
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -77,6 +83,16 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         }
         testVideoStatus = testPhotoStatus
     }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        isLocationPermissionGranted = grants.values.any { it }
+        testLocationStatus = if (isLocationPermissionGranted) {
+            "Location permission granted."
+        } else {
+            "Location permission denied."
+        }
+    }
 
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
@@ -85,6 +101,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                 isCameraPermissionGranted =
                     ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
                         PackageManager.PERMISSION_GRANTED
+                isLocationPermissionGranted = context.hasLocationPermission()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -213,10 +230,41 @@ fun SettingsScreen(contentPadding: PaddingValues) {
 
         SettingsToggleRow(
             title = "GPS/location capture",
-            description = "Permission status: not requested",
+            description = if (isLocationPermissionGranted) {
+                "Permission status: granted"
+            } else {
+                "Permission status: not granted"
+            },
             checked = settings.locationCaptureEnabled,
             onCheckedChange = { enabled ->
                 scope.launch { repository.setLocationCaptureEnabled(enabled) }
+            }
+        )
+        LocationPermissionAndTestCard(
+            isLocationPermissionGranted = isLocationPermissionGranted,
+            testLocationStatus = testLocationStatus,
+            onRequestPermission = {
+                locationPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    )
+                )
+            },
+            onTestLocationSnapshot = {
+                scope.launch {
+                    testLocationStatus = "Attempting test location snapshot..."
+                    testLocationStatus = when (val result = AndroidLocationSnapshotClient(context).captureLocationSnapshot()) {
+                        is LocationSnapshotResult.Success ->
+                            "Test location captured: ${result.latitude}, ${result.longitude}"
+
+                        is LocationSnapshotResult.Unavailable ->
+                            "Test location unavailable: ${result.reason}"
+
+                        is LocationSnapshotResult.Failure ->
+                            "Test location failed: ${result.reason}"
+                    }
+                }
             }
         )
         SettingsToggleRow(
@@ -282,6 +330,56 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         }
     }
 }
+
+@Composable
+private fun LocationPermissionAndTestCard(
+    isLocationPermissionGranted: Boolean,
+    testLocationStatus: String,
+    onRequestPermission: () -> Unit,
+    onTestLocationSnapshot: () -> Unit
+) {
+    SettingsSectionCard {
+        Text(
+            text = "Location permission",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            text = if (isLocationPermissionGranted) {
+                "Status: granted"
+            } else {
+                "Status: not granted. Location snapshots require location access and enabled location services."
+            },
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = onRequestPermission,
+                enabled = !isLocationPermissionGranted
+            ) {
+                Text(if (isLocationPermissionGranted) "Granted" else "Grant")
+            }
+            Button(
+                onClick = onTestLocationSnapshot,
+                enabled = isLocationPermissionGranted
+            ) {
+                Text("Test Location")
+            }
+        }
+        Text(
+            text = testLocationStatus,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+private fun android.content.Context.hasLocationPermission(): Boolean =
+    ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+        PackageManager.PERMISSION_GRANTED ||
+        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+        PackageManager.PERMISSION_GRANTED
 
 @Composable
 private fun DeviceAdminStatusCard(

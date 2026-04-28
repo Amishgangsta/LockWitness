@@ -58,4 +58,26 @@ interface SecurityIncidentDao {
         videoStatus: String,
         notes: String
     ): Int
+
+    @Query(
+        """
+        UPDATE security_incidents
+        SET latitude = :latitude,
+            longitude = :longitude,
+            locationAccuracy = :locationAccuracy,
+            locationProvider = :locationProvider,
+            locationStatus = :locationStatus,
+            notes = :notes
+        WHERE id = :id
+        """
+    )
+    suspend fun updateLocationResult(
+        id: Long,
+        latitude: Double?,
+        longitude: Double?,
+        locationAccuracy: Float?,
+        locationProvider: String?,
+        locationStatus: String,
+        notes: String
+    ): Int
 }
