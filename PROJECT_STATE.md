@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 8 — Timeline + Detail UI.
+Phase 9 — Export ZIP/CSV/Metadata/Hashes.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -15,14 +15,15 @@ Phase 5 photo hash/status/failure-resilience unit tests passed.
 Phase 6 video hash/status/duration/failure-resilience unit tests passed.
 Phase 7 location status/update/failure-resilience unit tests passed.
 Phase 8 incident history mapping and delete/clear action unit tests passed.
+Phase 9 local export metadata/CSV/hash/missing-media unit tests passed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
-Email/share/export, ads, billing, and cloud features.
+Email/share alerts, ads, billing, and cloud features.
 Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
-History navigation and media fallback display remain unverified on device/emulator.
+History navigation, media fallback display, and actual manual ZIP export UI remain unverified on device/emulator.
 
 ## Deferred Features
 Ads, billing, cloud, PDF export, email provider integration.
@@ -45,7 +46,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-8-after-20260427-223326.zip
+C:\Projects\LockWitness\backups\phase-9-after-20260427-225227.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
@@ -59,12 +60,14 @@ C:\Projects\LockWitness\backups\phase-8-after-20260427-223326.zip
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 27 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
+2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 33 tests, 0 failures, 0 errors.
+2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 8 only until user authorizes the next phase.
+Phase 9 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -210,3 +213,18 @@ Reported tested items:
 - Detail statuses/paths/hashes tested
 - Delete single incident tested
 - Clear all incidents tested
+
+## Last Phase 9 Verification
+- Branch: main
+- Starting commit: 1ebfbd65e58d36e8368a4662a0fe6e3993a51e10
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-9-before-20260427-224858.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-9-after-20260427-225227.zip
+- Manual export implementation: History screen provides user-initiated Export All and Export Incident actions.
+- Export storage: app-local ZIP files under the app files export directory; no email/share intent, cloud upload, or automatic transmission path added.
+- ZIP contents: metadata.json, incidents.csv, hashes.txt, and available photo/video media files.
+- Missing media behavior: missing photo/video files are recorded in export metadata/hash text and do not fail export generation.
+- Tests: `IncidentExportFormatterTest` passed 4 tests; `LocalIncidentExporterTest` passed 2 tests; full `testDebugUnitTest` passed 33 tests total.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires physical Android device/emulator test.
+- Email/share alerts, ads, billing, cloud/network transmission, SMS, audio, stealth, hidden icon, overlay/accessibility work performed: none.

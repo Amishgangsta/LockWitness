@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncident
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
+import com.lockwitness.app.export.LocalIncidentExporter
 import com.lockwitness.app.ui.history.IncidentDetailUi
 import com.lockwitness.app.ui.history.IncidentHistoryActions
 import com.lockwitness.app.ui.history.IncidentHistoryMapper
@@ -47,11 +48,13 @@ fun HistoryScreen(contentPadding: PaddingValues) {
     }
     val mapper = remember { IncidentHistoryMapper() }
     val actions = remember(repository) { IncidentHistoryActions(repository) }
+    val exporter = remember(context) { LocalIncidentExporter(context) }
     val incidents by repository
         .getAllOrderedByTimestampDesc()
         .collectAsState(initial = emptyList())
     var selectedIncidentId by remember { mutableLongStateOf(NO_SELECTION) }
     val selectedIncident = incidents.firstOrNull { it.id == selectedIncidentId }
+    var exportStatus by remember { androidx.compose.runtime.mutableStateOf("No export created.") }
     val scope = rememberCoroutineScope()
 
     HistoryContent(
@@ -72,6 +75,21 @@ fun HistoryScreen(contentPadding: PaddingValues) {
                 actions.clearIncidents()
                 selectedIncidentId = NO_SELECTION
             }
+        },
+        exportStatus = exportStatus,
+        onExportAll = {
+            scope.launch {
+                exportStatus = "Creating local ZIP export..."
+                val result = exporter.exportIncidents(incidents, filePrefix = "lockwitness_all_incidents")
+                exportStatus = "Export saved locally: ${result.file.absolutePath}"
+            }
+        },
+        onExportIncident = { incident ->
+            scope.launch {
+                exportStatus = "Creating local ZIP export..."
+                val result = exporter.exportIncidents(listOf(incident), filePrefix = "lockwitness_incident_${incident.id}")
+                exportStatus = "Export saved locally: ${result.file.absolutePath}"
+            }
         }
     )
 }
@@ -85,7 +103,10 @@ internal fun HistoryContent(
     onSelectIncident: (Long) -> Unit,
     onBackToTimeline: () -> Unit,
     onDeleteIncident: (Long) -> Unit,
-    onClearAll: () -> Unit
+    onClearAll: () -> Unit,
+    exportStatus: String,
+    onExportAll: () -> Unit,
+    onExportIncident: (SecurityIncident) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -116,12 +137,23 @@ internal fun HistoryContent(
                 Text("Clear All")
             }
         }
+        OutlinedButton(
+            onClick = onExportAll,
+            enabled = incidents.isNotEmpty()
+        ) {
+            Text("Export All")
+        }
+        Text(
+            text = exportStatus,
+            style = MaterialTheme.typography.bodyMedium
+        )
 
         when {
             selectedIncident != null -> IncidentDetailCard(
                 detail = mapper.toDetail(selectedIncident),
                 onBack = onBackToTimeline,
-                onDelete = { onDeleteIncident(selectedIncident.id) }
+                onDelete = { onDeleteIncident(selectedIncident.id) },
+                onExport = { onExportIncident(selectedIncident) }
             )
 
             incidents.isEmpty() -> EmptyHistoryCard()
@@ -253,7 +285,8 @@ private fun IndicatorRow(summary: IncidentSummaryUi) {
 private fun IncidentDetailCard(
     detail: IncidentDetailUi,
     onBack: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onExport: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -285,8 +318,13 @@ private fun IncidentDetailCard(
             DetailSection("Module statuses", detail.statusFields)
             DetailField("Notes", detail.notes)
             Spacer(modifier = Modifier.padding(top = 4.dp))
-            OutlinedButton(onClick = onDelete) {
-                Text("Delete Incident")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onExport) {
+                    Text("Export Incident")
+                }
+                OutlinedButton(onClick = onDelete) {
+                    Text("Delete Incident")
+                }
             }
         }
     }
