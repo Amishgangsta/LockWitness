@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 11 — Ads + Pro Monetization.
+Phase 12 — Diagnostics + Reliability Testing.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -18,6 +18,7 @@ Phase 8 incident history mapping and delete/clear action unit tests passed.
 Phase 9 local export metadata/CSV/hash/missing-media unit tests passed.
 Phase 10 email/share alert toggle/status/failure-resilience unit tests passed.
 Phase 11 Free/Pro gate, ad placeholder, and billing fallback unit tests passed.
+Phase 12 diagnostics mapping and runtime checklist unit tests passed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
@@ -25,7 +26,7 @@ Phase 0 repository control files and required folders verified on 2026-04-27.
 ## Unverified Features
 Cloud backend features.
 Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
-History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, and actual ads/billing environment remain unverified on device/emulator.
+History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, actual ads/billing environment, and Diagnostics runtime actions remain unverified on device/emulator.
 
 ## Deferred Features
 Cloud, PDF export, production ads, and production billing integration.
@@ -48,7 +49,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-11-after-20260427-231308.zip
+C:\Projects\LockWitness\backups\phase-12-after-20260427-232743.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
@@ -68,12 +69,14 @@ C:\Projects\LockWitness\backups\phase-11-after-20260427-231308.zip
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 47 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
+2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 52 tests, 0 failures, 0 errors.
+2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 11 only until user authorizes the next phase.
+Phase 12 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -265,3 +268,18 @@ Reported tested items:
 - Build result: passed with exit code 0.
 - Runtime verification: not performed; requires physical Android device/emulator and Play billing/ad test environment.
 - Production ad IDs, hardcoded secrets/API keys/tokens, cloud/backend transmission, SMS, audio, stealth, hidden icon, overlay/accessibility work performed: none.
+
+## Last Phase 12 Verification
+- Branch: main
+- Starting commit: 38fbd7639ab83c2956e516870a03887d423242a6
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-12-before-20260427-232352.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-12-after-20260427-232743.zip
+- Diagnostics UI: Diagnostics destination added with checks for Device Admin, camera permission, location permission, toggles, history/export/share availability, Free/Pro mode, app version, Android version, and device model.
+- Manual diagnostics: explicit user actions call existing photo, video, location, export, and share-chooser paths only.
+- Runtime checklist: in-app checklist generated for Device Admin activation, wrong unlock, photo, video, location, history/detail, export, share chooser, and Free/Pro gate tests.
+- Diagnostic result model: PASS, FAIL, WARNING, NOT_TESTED, and UNAVAILABLE.
+- Tests: `DiagnosticMapperTest` passed 3 tests; `RuntimeVerificationChecklistTest` passed 2 tests; full `testDebugUnitTest` passed 52 tests total.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires physical Android device/emulator test.
+- Production ad IDs, production billing implementation, hardcoded secrets/API keys/tokens, cloud/backend transmission, SMS, audio, stealth, hidden icon, overlay/accessibility work performed: none.

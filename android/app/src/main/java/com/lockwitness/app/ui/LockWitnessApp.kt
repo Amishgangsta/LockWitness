@@ -18,6 +18,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.lockwitness.app.ui.screens.AboutScreen
 import com.lockwitness.app.ui.screens.DashboardScreen
+import com.lockwitness.app.ui.screens.DiagnosticsScreen
 import com.lockwitness.app.ui.screens.HistoryScreen
 import com.lockwitness.app.ui.screens.SettingsScreen
 
@@ -70,6 +71,9 @@ fun LockWitnessApp() {
             }
             composable(LockWitnessDestination.History.route) {
                 HistoryScreen(contentPadding = innerPadding)
+            }
+            composable(LockWitnessDestination.Diagnostics.route) {
+                DiagnosticsScreen(contentPadding = innerPadding)
             }
             composable(LockWitnessDestination.About.route) {
                 AboutScreen(contentPadding = innerPadding)
