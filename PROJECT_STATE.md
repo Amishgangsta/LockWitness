@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 13 — Play Store Hardening.
+Phase 14 — Final QA / Release Candidate Control Pass.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -27,6 +27,7 @@ Phase 0 repository control files and required folders verified on 2026-04-27.
 Cloud backend features.
 Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
 History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, actual ads/billing environment, and Diagnostics runtime actions remain unverified on device/emulator.
+Release-candidate runtime verification remains blocked until physical Android device or emulator evidence is recorded.
 
 ## Deferred Features
 Cloud, PDF export, production ads, and production billing integration.
@@ -58,7 +59,7 @@ Create local ZIP backups only before and after high-risk phases, release candida
 Each phase record must include the relevant commit hash and whether a local ZIP backup was created. If no ZIP backup is created, the phase report must say: “No ZIP backup created under reduced backup policy.”
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-12-after-20260427-234420.zip
+C:\Projects\LockWitness\backups\phase-14-after-20260428-071354.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
@@ -84,12 +85,14 @@ C:\Projects\LockWitness\backups\phase-12-after-20260427-234420.zip
 2026-04-27: Phase 12 re-verification `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 2026-04-28: Phase 13 `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android.
 2026-04-28: Phase 13 `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android.
+2026-04-28: Phase 14 `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android.
+2026-04-28: Phase 14 `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android.
 
 ## Known Defects
-None yet.
+Release candidate is blocked for production submission until runtime verification, production monetization setup, and final privacy/legal review are completed.
 
 ## Next Authorized Phase
-Phase 13 only until user authorizes the next phase.
+Phase 14 only; do not proceed beyond Phase 14 without explicit authorization.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -355,3 +358,22 @@ Reported tested items:
 - Verification: `.\gradlew.bat assembleDebug` passed.
 - Language scan: Phase 13 documents contain no matches for the prohibited wording list from the task.
 - Runtime verification: not performed; documentation-only phase.
+
+## Phase 14 Final QA / Release Candidate Control Pass
+- Branch: main
+- Starting commit: 5170e5f48b3b31179a14cd8b6bddf6299578781f
+- Pre-phase Git checkpoint: attempted; no changes to commit.
+- Local ZIP backup created: yes, because release-candidate control is high-risk under the reduced backup policy.
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-14-before-20260428-071040.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-14-after-20260428-071354.zip
+- Release candidate audit: docs/release-candidate-audit.md
+- Runtime test plan: docs/runtime-test-plan.md
+- Play Store submission blockers: docs/play-store-submission-blockers.md
+- Monetization production checklist: docs/monetization-production-checklist.md
+- Unit tests: `.\gradlew.bat testDebugUnitTest` passed.
+- Debug build: `.\gradlew.bat assembleDebug` passed.
+- Source scan: no case-sensitive matches for deprecated `android.hardware.Camera`, RECORD_AUDIO, SMS, accessibility-service, overlay permission, SMTP, or audio-source APIs.
+- Ad ID scan: only the existing Google test banner ID was found.
+- Android source files modified: none.
+- Release blockers recorded: physical Android runtime test, Device Admin activation, failed unlock, photo capture, video capture, location snapshot, export ZIP, Android chooser/share, production AdMob, production Play Billing, and final privacy/legal review.
+- Runtime verification: not performed in Codex; no release-ready runtime claim made.
