@@ -193,3 +193,20 @@ C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
 - Build result: passed with exit code 0.
 - Runtime verification: not performed; requires physical Android device/emulator test.
 - Export/email/share/ads/billing/cloud/SMS/audio/stealth work performed: none.
+
+## User-Reported Runtime Smoke Test — After Phase 8
+User-reported manual runtime verification; not independently Codex-verified.
+
+Reported tested items:
+- Device Admin activation tested
+- Camera permission tested
+- Location permission tested
+- Failed unlock flow tested
+- Incident creation tested
+- Photo attempt tested
+- Video attempt tested
+- Location attempt tested
+- History visibility tested
+- Detail statuses/paths/hashes tested
+- Delete single incident tested
+- Clear all incidents tested
