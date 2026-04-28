@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 7 — Location Snapshot.
+Phase 8 — Timeline + Detail UI.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -14,6 +14,7 @@ Phase 4 failed-unlock incident shell creation logic unit tests passed.
 Phase 5 photo hash/status/failure-resilience unit tests passed.
 Phase 6 video hash/status/duration/failure-resilience unit tests passed.
 Phase 7 location status/update/failure-resilience unit tests passed.
+Phase 8 incident history mapping and delete/clear action unit tests passed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
@@ -21,6 +22,7 @@ Phase 0 repository control files and required folders verified on 2026-04-27.
 ## Unverified Features
 Email/share/export, ads, billing, and cloud features.
 Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
+History navigation and media fallback display remain unverified on device/emulator.
 
 ## Deferred Features
 Ads, billing, cloud, PDF export, email provider integration.
@@ -43,7 +45,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-7-after-20260427-214533.zip
+C:\Projects\LockWitness\backups\phase-8-after-20260427-223326.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
@@ -55,12 +57,14 @@ C:\Projects\LockWitness\backups\phase-7-after-20260427-214533.zip
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 23 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
+2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 27 tests, 0 failures, 0 errors.
+2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 7 only until user authorizes the next phase.
+Phase 8 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -174,3 +178,18 @@ C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
 - Build result: passed with exit code 0.
 - Runtime verification: not performed; requires physical Android device/emulator test with location permission granted and location services enabled.
 - Email/share/export/ads/billing/cloud/SMS/audio/stealth work performed: none.
+
+## Last Phase 8 Verification
+- Branch: main
+- Starting commit: e0c7b03440ee5176d8b73a5b75e0a4545330f469
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-8-before-20260427-222954.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-8-after-20260427-223326.zip
+- Timeline UI: History screen reads Room incidents from SecurityIncidentRepository and displays records in DAO timestamp-desc order.
+- Detail UI: shows trigger metadata, settings snapshot, device metadata, media paths, location fields, hashes, module statuses, and notes.
+- Media preview approach: safe fallback path/status display; runtime photo/video preview not added in this phase.
+- Delete/clear: single delete and clear-all actions call SecurityIncidentRepository through IncidentHistoryActions.
+- Tests: `IncidentHistoryMapperTest` passed 4 tests; full `testDebugUnitTest` passed 27 tests total.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires physical Android device/emulator test.
+- Export/email/share/ads/billing/cloud/SMS/audio/stealth work performed: none.
