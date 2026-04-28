@@ -5,6 +5,7 @@ import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.lockwitness.app.alert.AlertIncidentUpdater
 import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
@@ -66,6 +67,10 @@ class LockWitnessDeviceAdminReceiver : DeviceAdminReceiver() {
                     incidentRepository = incidentRepository,
                     locationSnapshotClient = AndroidLocationSnapshotClient(appContext)
                 ).updateIncidentLocation(incidentId)
+
+                AlertIncidentUpdater(
+                    incidentRepository = incidentRepository
+                ).markUserActionRequired(incidentId)
             }
         }
     }

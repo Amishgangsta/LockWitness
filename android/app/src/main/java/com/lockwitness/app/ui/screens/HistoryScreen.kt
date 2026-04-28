@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.lockwitness.app.alert.AlertIncidentUpdater
+import com.lockwitness.app.alert.AlertShareIntentBuilder
 import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncident
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
@@ -49,6 +51,8 @@ fun HistoryScreen(contentPadding: PaddingValues) {
     val mapper = remember { IncidentHistoryMapper() }
     val actions = remember(repository) { IncidentHistoryActions(repository) }
     val exporter = remember(context) { LocalIncidentExporter(context) }
+    val shareIntentBuilder = remember(context) { AlertShareIntentBuilder(context) }
+    val alertUpdater = remember(repository) { AlertIncidentUpdater(repository) }
     val incidents by repository
         .getAllOrderedByTimestampDesc()
         .collectAsState(initial = emptyList())
@@ -90,6 +94,24 @@ fun HistoryScreen(contentPadding: PaddingValues) {
                 val result = exporter.exportIncidents(listOf(incident), filePrefix = "lockwitness_incident_${incident.id}")
                 exportStatus = "Export saved locally: ${result.file.absolutePath}"
             }
+        },
+        onSendIncident = { incident ->
+            scope.launch {
+                exportStatus = "Creating local ZIP export for chooser..."
+                val result = exporter.exportIncidents(listOf(incident), filePrefix = "lockwitness_incident_${incident.id}")
+                runCatching {
+                    context.startActivity(shareIntentBuilder.buildChooserIntent(result.file))
+                }.onSuccess {
+                    alertUpdater.markManualShareLaunched(incident.id)
+                    exportStatus = "Chooser opened for local export: ${result.file.absolutePath}"
+                }.onFailure { error ->
+                    alertUpdater.markManualShareFailed(
+                        incidentId = incident.id,
+                        reason = error.message ?: "No compatible chooser activity."
+                    )
+                    exportStatus = "Chooser unavailable; local export saved: ${result.file.absolutePath}"
+                }
+            }
         }
     )
 }
@@ -106,7 +128,8 @@ internal fun HistoryContent(
     onClearAll: () -> Unit,
     exportStatus: String,
     onExportAll: () -> Unit,
-    onExportIncident: (SecurityIncident) -> Unit
+    onExportIncident: (SecurityIncident) -> Unit,
+    onSendIncident: (SecurityIncident) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -153,7 +176,9 @@ internal fun HistoryContent(
                 detail = mapper.toDetail(selectedIncident),
                 onBack = onBackToTimeline,
                 onDelete = { onDeleteIncident(selectedIncident.id) },
-                onExport = { onExportIncident(selectedIncident) }
+                onExport = { onExportIncident(selectedIncident) },
+                onSend = { onSendIncident(selectedIncident) },
+                canSend = selectedIncident.emailEnabled || selectedIncident.shareEnabled
             )
 
             incidents.isEmpty() -> EmptyHistoryCard()
@@ -286,7 +311,9 @@ private fun IncidentDetailCard(
     detail: IncidentDetailUi,
     onBack: () -> Unit,
     onDelete: () -> Unit,
-    onExport: () -> Unit
+    onExport: () -> Unit,
+    onSend: () -> Unit,
+    canSend: Boolean
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -321,6 +348,12 @@ private fun IncidentDetailCard(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onExport) {
                     Text("Export Incident")
+                }
+                Button(
+                    onClick = onSend,
+                    enabled = canSend
+                ) {
+                    Text("Send")
                 }
                 OutlinedButton(onClick = onDelete) {
                     Text("Delete Incident")

@@ -80,4 +80,20 @@ interface SecurityIncidentDao {
         locationStatus: String,
         notes: String
     ): Int
+
+    @Query(
+        """
+        UPDATE security_incidents
+        SET emailStatus = :emailStatus,
+            shareStatus = :shareStatus,
+            notes = :notes
+        WHERE id = :id
+        """
+    )
+    suspend fun updateAlertResult(
+        id: Long,
+        emailStatus: String,
+        shareStatus: String,
+        notes: String
+    ): Int
 }

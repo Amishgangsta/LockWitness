@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 9 — Export ZIP/CSV/Metadata/Hashes.
+Phase 10 — Email / Share Alerts.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -16,14 +16,15 @@ Phase 6 video hash/status/duration/failure-resilience unit tests passed.
 Phase 7 location status/update/failure-resilience unit tests passed.
 Phase 8 incident history mapping and delete/clear action unit tests passed.
 Phase 9 local export metadata/CSV/hash/missing-media unit tests passed.
+Phase 10 email/share alert toggle/status/failure-resilience unit tests passed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
-Email/share alerts, ads, billing, and cloud features.
+Ads, billing, and cloud features.
 Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
-History navigation, media fallback display, and actual manual ZIP export UI remain unverified on device/emulator.
+History navigation, media fallback display, actual manual ZIP export UI, and actual share/email chooser flow remain unverified on device/emulator.
 
 ## Deferred Features
 Ads, billing, cloud, PDF export, email provider integration.
@@ -46,7 +47,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-9-after-20260427-225227.zip
+C:\Projects\LockWitness\backups\phase-10-after-20260427-230402.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
@@ -62,12 +63,14 @@ C:\Projects\LockWitness\backups\phase-9-after-20260427-225227.zip
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 33 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
+2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 40 tests, 0 failures, 0 errors.
+2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 9 only until user authorizes the next phase.
+Phase 10 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -228,3 +231,18 @@ Reported tested items:
 - Build result: passed with exit code 0.
 - Runtime verification: not performed; requires physical Android device/emulator test.
 - Email/share alerts, ads, billing, cloud/network transmission, SMS, audio, stealth, hidden icon, overlay/accessibility work performed: none.
+
+## Last Phase 10 Verification
+- Branch: main
+- Starting commit: f2d108735e65419066015fbec6cd0bdaba82673a
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-10-before-20260427-225840.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-10-after-20260427-230402.zip
+- Email/share behavior: user-controlled Android chooser handoff from incident detail using local export package.
+- Failed-unlock alert path: no sender launched; enabled email/share alerts are marked UNAVAILABLE with notes requiring user action, disabled toggles remain DISABLED.
+- Manual chooser path: creates local export first, then launches chooser by explicit user button; chooser launch failure records FAILED without deleting incident/export/media/location data.
+- Credentials/destinations: no hardcoded recipients, SMTP credentials, API keys, tokens, passwords, or cloud backend added.
+- Tests: `AlertIncidentUpdaterTest` passed 6 tests; `AlertShareIntentBuilderTest` passed 1 test; full `testDebugUnitTest` passed 40 tests total.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires physical Android device/emulator test.
+- Ads, billing, cloud/network transmission, SMS, audio, stealth, hidden icon, overlay/accessibility work performed: none.

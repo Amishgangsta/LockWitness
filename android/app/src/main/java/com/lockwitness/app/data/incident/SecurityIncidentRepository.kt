@@ -68,4 +68,17 @@ class SecurityIncidentRepository(
             locationStatus = locationStatus,
             notes = notes
         )
+
+    suspend fun updateAlertResult(
+        id: Long,
+        emailStatus: String,
+        shareStatus: String,
+        notes: String
+    ): Int =
+        dao.updateAlertResult(
+            id = id,
+            emailStatus = emailStatus,
+            shareStatus = shareStatus,
+            notes = notes
+        )
 }
