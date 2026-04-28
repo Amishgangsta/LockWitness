@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 12.2 — Backup Policy Reduction.
+Phase 13 — Play Store Hardening.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -82,12 +82,14 @@ C:\Projects\LockWitness\backups\phase-12-after-20260427-234420.zip
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 2026-04-27: Phase 12 re-verification `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android; XML test reports show 52 tests, 0 failures, 0 errors.
 2026-04-27: Phase 12 re-verification `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
+2026-04-28: Phase 13 `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android.
+2026-04-28: Phase 13 `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 12.2 only until user authorizes the next phase.
+Phase 13 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -336,3 +338,20 @@ Reported tested items:
 - High-risk ZIP backup triggers: Device Admin, camera, video, billing, release candidate, dependency upgrades, major refactors, and major build-system changes.
 - Git ignore policy: `backups/*.zip` ignored.
 - Android source files modified: none.
+
+## Phase 13 Play Store Hardening
+- Branch: main
+- Starting commit: f474cb62922bb7bd09ff44eb58772a780949b278
+- Local ZIP backup created: no.
+- Backup ZIP note: No ZIP backup created under reduced backup policy.
+- Privacy policy draft: store/privacy-policy-draft.md
+- Play Store listing draft: store/play-store-listing-draft.md
+- Permission disclosure document: store/permission-disclosures.md
+- In-app disclosure copy recommendations: docs/in-app-disclosure-copy-recommendations.md
+- Testing and release checklist: docs/testing-release-checklist.md
+- Policy risk review: docs/policy-risk-review.md
+- Android source files modified: none.
+- Verification: `.\gradlew.bat testDebugUnitTest` passed.
+- Verification: `.\gradlew.bat assembleDebug` passed.
+- Language scan: Phase 13 documents contain no matches for the prohibited wording list from the task.
+- Runtime verification: not performed; documentation-only phase.
