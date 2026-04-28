@@ -283,3 +283,17 @@ Reported tested items:
 - Build result: passed with exit code 0.
 - Runtime verification: not performed; requires physical Android device/emulator test.
 - Production ad IDs, production billing implementation, hardcoded secrets/API keys/tokens, cloud/backend transmission, SMS, audio, stealth, hidden icon, overlay/accessibility work performed: none.
+
+## Phase 12A Runtime Verification Attempt
+- Branch: main
+- Starting commit: b8034721815cd4784ffd2b7186a31ba86571e15b
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-12A-before-20260427-233335.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-12A-after-20260427-233820.zip
+- Unit tests: `.\gradlew.bat testDebugUnitTest` passed with exit code 0.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime device discovery: `adb devices` and `adb devices -l` reported no attached devices or emulators.
+- Emulator availability: no `emulator.exe` was found under C:\Users\Randy\AppData\Local\Android\Sdk, and no AVD entries were found under the accessible `.android\avd` path.
+- Logcat review: crash logcat could not be completed because no Android device/emulator was attached; `adb logcat -d -b crash` timed out.
+- Runtime verification result: blocked. Diagnostics screen navigation, diagnostic actions, and logcat review were not runtime-verified in Codex.
+- App feature work performed: none.
