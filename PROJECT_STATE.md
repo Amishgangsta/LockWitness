@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 12 — Diagnostics + Reliability Testing.
+Phase 12.2 — Backup Policy Reduction.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -48,6 +48,15 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 ## Current Rule
 Codex must not proceed beyond the active phase without user authorization.
 
+## Backup Policy
+Backup ZIP archives are local-only and must not be committed to Git.
+
+Routine phases require Git checkpoint commits, not ZIP backups.
+
+Create local ZIP backups only before and after high-risk phases, release candidates, dependency upgrades, or major refactors. High-risk phases include Device Admin, camera, video, billing, release candidate, and major build-system changes.
+
+Each phase record must include the relevant commit hash and whether a local ZIP backup was created. If no ZIP backup is created, the phase report must say: “No ZIP backup created under reduced backup policy.”
+
 ## Last Backup
 C:\Projects\LockWitness\backups\phase-12-after-20260427-234420.zip
 
@@ -78,7 +87,7 @@ C:\Projects\LockWitness\backups\phase-12-after-20260427-234420.zip
 None yet.
 
 ## Next Authorized Phase
-Phase 12 only until user authorizes the next phase.
+Phase 12.2 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -316,3 +325,14 @@ Reported tested items:
 - Source scan: no case-sensitive hits for deprecated `android.hardware.Camera`, RECORD_AUDIO, SMS, accessibility-service, overlay permission, SMTP, or audio-source APIs; only Google test banner ad ID was found.
 - Runtime verification: not performed; requires physical Android device/emulator test.
 - App feature work performed: none during this re-verification pass.
+
+## Phase 12.2 Backup Policy Reduction
+- Branch: main
+- Starting commit: 01e97b17f0d124d93260b9766c9811cfd0175518
+- Local ZIP backup created: no.
+- Backup ZIP note: No ZIP backup created under reduced backup policy.
+- Policy update: backup ZIP archives are local-only, less frequent, and must not be committed to Git.
+- Routine phase backup method: Git checkpoint commits.
+- High-risk ZIP backup triggers: Device Admin, camera, video, billing, release candidate, dependency upgrades, major refactors, and major build-system changes.
+- Git ignore policy: `backups/*.zip` ignored.
+- Android source files modified: none.

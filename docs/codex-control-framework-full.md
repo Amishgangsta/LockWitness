@@ -74,14 +74,20 @@ If unrelated issues are discovered, log them under "Deferred Issues" and do not 
 
 ## Backup Protocol
 
+Backup ZIP archives are local-only safeguards and must not be committed to Git.
+
+Routine phases require Git checkpoint commits, not ZIP backups.
+
+Create local ZIP backups only before and after high-risk phases, release candidates, dependency upgrades, or major refactors. High-risk phases include Device Admin, camera, video, billing, release candidate, and major build-system changes.
+
 Before each phase:
 
 1. Inspect Git status.
-2. Create a Git checkpoint if the repository is initialized:
+2. Create a Git checkpoint if the repository is initialized and repository state has changed:
    - `git status`
    - `git add -A`
    - `git commit -m "checkpoint: before phase X - <phase name>"`
-3. Create a full project archive:
+3. For high-risk phases only, create a local full project archive:
    - `backups/phase-X-before-YYYYMMDD-HHMMSS.zip`
 
 After each phase:
@@ -89,10 +95,10 @@ After each phase:
 1. Create a Git checkpoint:
    - `git add -A`
    - `git commit -m "checkpoint: after phase X - <phase name>"`
-2. Create a full project archive:
+2. For high-risk phases only, create a local full project archive:
    - `backups/phase-X-after-YYYYMMDD-HHMMSS.zip`
 
-If Git is not initialized, initialize Git unless instructed otherwise. Still create ZIP backups. Never rely only on working-tree state.
+If Git is not initialized, initialize Git unless instructed otherwise. Never rely only on working-tree state. `PROJECT_STATE.md` must record the relevant commit hash and whether a local ZIP backup was created. If no backup ZIP is created, the phase report must say: “No ZIP backup created under reduced backup policy.”
 
 ## Project State Maintenance
 
@@ -225,7 +231,7 @@ Do not begin the next phase until:
 1. Current phase acceptance criteria are checked one by one.
 2. Verification evidence is reported.
 3. `PROJECT_STATE.md` is updated.
-4. Backup archive is created.
+4. Backup policy is followed and documented.
 5. User authorizes the next phase.
 
 If any criterion fails, stop, report the failure, provide a repair plan, and do not proceed to new features.
@@ -313,7 +319,7 @@ Before modifying code:
 7. Restate the active phase goal.
 8. Restate the product goal.
 9. List in-scope and out-of-scope items.
-10. Create a pre-phase backup ZIP.
+10. Create a pre-phase local ZIP backup only when the phase is high-risk.
 11. Create a pre-phase Git checkpoint if possible.
 
 During work:
@@ -332,7 +338,7 @@ After work:
 2. Report exact results.
 3. Run regression checks from prior phases where possible.
 4. Update `PROJECT_STATE.md`.
-5. Create post-phase backup ZIP.
+5. Create post-phase local ZIP backup only when the phase is high-risk.
 6. Create post-phase Git checkpoint if possible.
 7. Produce the required phase report.
 8. Stop.

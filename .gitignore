@@ -1,9 +1,2 @@
-
-# Local phase backups - do not commit ZIP archives
-backups/*.zip
-
-# Local phase backups - do not commit ZIP archives
-backups/*.zip
-
 # Local phase backups - do not commit ZIP archives
 backups/*.zip
