@@ -34,6 +34,10 @@ import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncident
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
 import com.lockwitness.app.export.LocalIncidentExporter
+import com.lockwitness.app.monetization.MonetizationRepository
+import com.lockwitness.app.monetization.MonetizationState
+import com.lockwitness.app.monetization.ProFeature
+import com.lockwitness.app.monetization.ProFeatureGate
 import com.lockwitness.app.ui.history.IncidentDetailUi
 import com.lockwitness.app.ui.history.IncidentHistoryActions
 import com.lockwitness.app.ui.history.IncidentHistoryMapper
@@ -53,19 +57,26 @@ fun HistoryScreen(contentPadding: PaddingValues) {
     val exporter = remember(context) { LocalIncidentExporter(context) }
     val shareIntentBuilder = remember(context) { AlertShareIntentBuilder(context) }
     val alertUpdater = remember(repository) { AlertIncidentUpdater(repository) }
+    val monetizationRepository = remember(context) { MonetizationRepository.create(context) }
+    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
+    val proFeatureGate = remember { ProFeatureGate() }
     val incidents by repository
         .getAllOrderedByTimestampDesc()
         .collectAsState(initial = emptyList())
+    val visibleIncidents = proFeatureGate.visibleHistory(incidents, monetizationState)
     var selectedIncidentId by remember { mutableLongStateOf(NO_SELECTION) }
-    val selectedIncident = incidents.firstOrNull { it.id == selectedIncidentId }
+    val selectedIncident = visibleIncidents.firstOrNull { it.id == selectedIncidentId }
     var exportStatus by remember { androidx.compose.runtime.mutableStateOf("No export created.") }
     val scope = rememberCoroutineScope()
 
     HistoryContent(
         contentPadding = contentPadding,
-        incidents = incidents,
+        incidents = visibleIncidents,
+        totalIncidentCount = incidents.size,
         selectedIncident = selectedIncident,
         mapper = mapper,
+        monetizationState = monetizationState,
+        canExport = proFeatureGate.isAllowed(ProFeature.ExportZip, monetizationState),
         onSelectIncident = { selectedIncidentId = it },
         onBackToTimeline = { selectedIncidentId = NO_SELECTION },
         onDeleteIncident = { id ->
@@ -84,7 +95,7 @@ fun HistoryScreen(contentPadding: PaddingValues) {
         onExportAll = {
             scope.launch {
                 exportStatus = "Creating local ZIP export..."
-                val result = exporter.exportIncidents(incidents, filePrefix = "lockwitness_all_incidents")
+                val result = exporter.exportIncidents(visibleIncidents, filePrefix = "lockwitness_all_incidents")
                 exportStatus = "Export saved locally: ${result.file.absolutePath}"
             }
         },
@@ -120,8 +131,11 @@ fun HistoryScreen(contentPadding: PaddingValues) {
 internal fun HistoryContent(
     contentPadding: PaddingValues,
     incidents: List<SecurityIncident>,
+    totalIncidentCount: Int,
     selectedIncident: SecurityIncident?,
     mapper: IncidentHistoryMapper,
+    monetizationState: MonetizationState,
+    canExport: Boolean,
     onSelectIncident: (Long) -> Unit,
     onBackToTimeline: () -> Unit,
     onDeleteIncident: (Long) -> Unit,
@@ -149,7 +163,11 @@ internal fun HistoryContent(
                     style = MaterialTheme.typography.headlineMedium
                 )
                 Text(
-                    text = "Local incident timeline",
+                    text = if (monetizationState.isPro || totalIncidentCount <= incidents.size) {
+                        "Local incident timeline"
+                    } else {
+                        "Local incident timeline: showing ${incidents.size} of $totalIncidentCount in Free mode"
+                    },
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -162,9 +180,9 @@ internal fun HistoryContent(
         }
         OutlinedButton(
             onClick = onExportAll,
-            enabled = incidents.isNotEmpty()
+            enabled = incidents.isNotEmpty() && canExport
         ) {
-            Text("Export All")
+            Text(if (canExport) "Export All" else "Export All Pro")
         }
         Text(
             text = exportStatus,
@@ -178,7 +196,8 @@ internal fun HistoryContent(
                 onDelete = { onDeleteIncident(selectedIncident.id) },
                 onExport = { onExportIncident(selectedIncident) },
                 onSend = { onSendIncident(selectedIncident) },
-                canSend = selectedIncident.emailEnabled || selectedIncident.shareEnabled
+                canSend = selectedIncident.emailEnabled || selectedIncident.shareEnabled,
+                canExport = canExport
             )
 
             incidents.isEmpty() -> EmptyHistoryCard()
@@ -313,7 +332,8 @@ private fun IncidentDetailCard(
     onDelete: () -> Unit,
     onExport: () -> Unit,
     onSend: () -> Unit,
-    canSend: Boolean
+    canSend: Boolean,
+    canExport: Boolean
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -346,12 +366,15 @@ private fun IncidentDetailCard(
             DetailField("Notes", detail.notes)
             Spacer(modifier = Modifier.padding(top = 4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onExport) {
-                    Text("Export Incident")
+                Button(
+                    onClick = onExport,
+                    enabled = canExport
+                ) {
+                    Text(if (canExport) "Export Incident" else "Export Pro")
                 }
                 Button(
                     onClick = onSend,
-                    enabled = canSend
+                    enabled = canSend && canExport
                 ) {
                     Text("Send")
                 }

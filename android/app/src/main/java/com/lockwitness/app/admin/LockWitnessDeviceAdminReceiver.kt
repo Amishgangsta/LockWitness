@@ -11,6 +11,7 @@ import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
 import com.lockwitness.app.location.AndroidLocationSnapshotClient
 import com.lockwitness.app.location.LocationIncidentUpdater
+import com.lockwitness.app.monetization.MonetizationRepository
 import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoIncidentUpdater
 import com.lockwitness.app.video.Camera2VideoCaptureClient
@@ -39,13 +40,15 @@ class LockWitnessDeviceAdminReceiver : DeviceAdminReceiver() {
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             val settingsRepository = SettingsRepository.create(appContext)
+            val monetizationRepository = MonetizationRepository.create(appContext)
             val incidentRepository = SecurityIncidentRepository(
                 LockWitnessDatabase.getInstance(appContext).securityIncidentDao()
             )
             val incidentId = FailedUnlockIncidentCreator(
                 settingsRepository = settingsRepository,
                 incidentRepository = incidentRepository,
-                deviceInfoProvider = AndroidDeviceInfoProvider(appContext)
+                deviceInfoProvider = AndroidDeviceInfoProvider(appContext),
+                monetizationStateProvider = { monetizationRepository.state.first() }
             ).createIncidentShell(failedAttemptCount)
 
             if (incidentId != null) {

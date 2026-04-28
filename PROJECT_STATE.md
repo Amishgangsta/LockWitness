@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 10 — Email / Share Alerts.
+Phase 11 — Ads + Pro Monetization.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -17,17 +17,18 @@ Phase 7 location status/update/failure-resilience unit tests passed.
 Phase 8 incident history mapping and delete/clear action unit tests passed.
 Phase 9 local export metadata/CSV/hash/missing-media unit tests passed.
 Phase 10 email/share alert toggle/status/failure-resilience unit tests passed.
+Phase 11 Free/Pro gate, ad placeholder, and billing fallback unit tests passed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
-Ads, billing, and cloud features.
+Cloud backend features.
 Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
-History navigation, media fallback display, actual manual ZIP export UI, and actual share/email chooser flow remain unverified on device/emulator.
+History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, and actual ads/billing environment remain unverified on device/emulator.
 
 ## Deferred Features
-Ads, billing, cloud, PDF export, email provider integration.
+Cloud, PDF export, production ads, and production billing integration.
 
 ## Active Stack
 Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
@@ -47,7 +48,7 @@ Kotlin, Jetpack Compose, CameraX or Camera2, Room, DataStore, WorkManager.
 Codex must not proceed beyond the active phase without user authorization.
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-10-after-20260427-230402.zip
+C:\Projects\LockWitness\backups\phase-11-after-20260427-231308.zip
 
 ## Last Verified Build
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
@@ -65,12 +66,14 @@ C:\Projects\LockWitness\backups\phase-10-after-20260427-230402.zip
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 40 tests, 0 failures, 0 errors.
 2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
+2026-04-27: `.\gradlew.bat testDebugUnitTest` passed from C:\Projects\LockWitness\android with 47 tests, 0 failures, 0 errors.
+2026-04-27: `.\gradlew.bat assembleDebug` passed from C:\Projects\LockWitness\android with ANDROID_HOME=C:\Users\Randy\AppData\Local\Android\Sdk.
 
 ## Known Defects
 None yet.
 
 ## Next Authorized Phase
-Phase 10 only until user authorizes the next phase.
+Phase 11 only until user authorizes the next phase.
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
@@ -246,3 +249,19 @@ Reported tested items:
 - Build result: passed with exit code 0.
 - Runtime verification: not performed; requires physical Android device/emulator test.
 - Ads, billing, cloud/network transmission, SMS, audio, stealth, hidden icon, overlay/accessibility work performed: none.
+
+## Last Phase 11 Verification
+- Branch: main
+- Starting commit: f0777990a48db7ac869e7537a74a1d1951b20646
+- Pre-phase backup: C:\Projects\LockWitness\backups\phase-11-before-20260427-230814.zip
+- Post-phase backup: C:\Projects\LockWitness\backups\phase-11-after-20260427-231308.zip
+- Free/Pro model: local MonetizationState, MonetizationRepository, ProFeatureGate, and safe fallback billing service.
+- Pro gates: unlimited history, video capture, location snapshot, ZIP export, and ad removal are represented in gate logic.
+- Free behavior: failed-unlock monitoring and photo capture remain available; video/location/export are gated in Free mode; local timeline is limited to 10 visible records in Free mode.
+- Ads: banner ad placeholder only; uses Google test banner ID `ca-app-pub-3940256099942544/6300978111`; no ad SDK, interstitial, rewarded, app-open, or production ad IDs added.
+- Billing: safe abstraction only; billing unavailable falls back to Free mode without crashing.
+- Tests: `ProFeatureGateTest` passed 4 tests; `MonetizationRepositoryTest` passed 3 tests; `FailedUnlockIncidentCreatorTest` includes Free-mode video/location gate coverage; full `testDebugUnitTest` passed 47 tests total.
+- Build command: `.\gradlew.bat assembleDebug`
+- Build result: passed with exit code 0.
+- Runtime verification: not performed; requires physical Android device/emulator and Play billing/ad test environment.
+- Production ad IDs, hardcoded secrets/API keys/tokens, cloud/backend transmission, SMS, audio, stealth, hidden icon, overlay/accessibility work performed: none.

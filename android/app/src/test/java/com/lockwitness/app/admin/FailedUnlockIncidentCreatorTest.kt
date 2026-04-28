@@ -8,6 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
+import com.lockwitness.app.monetization.MonetizationState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -111,7 +112,28 @@ class FailedUnlockIncidentCreatorTest {
         assertNull(incident?.videoSha256)
     }
 
-    private fun creator(): FailedUnlockIncidentCreator =
+    @Test
+    fun createIncidentShellDisablesProGatedVideoAndLocationInFreeMode() = runTest {
+        settingsRepository.setMasterMonitoringEnabled(true)
+        settingsRepository.setPhotoCaptureEnabled(true)
+        settingsRepository.setVideoCaptureEnabled(true)
+        settingsRepository.setLocationCaptureEnabled(true)
+
+        val id = creator(monetizationState = MonetizationState.Free).createIncidentShell(failedAttemptCount = 1)
+        val incident = id?.let { incidentRepository.getById(it).first() }
+
+        assertNotNull(id)
+        assertEquals(true, incident?.photoEnabled)
+        assertEquals(false, incident?.videoEnabled)
+        assertEquals(false, incident?.locationEnabled)
+        assertEquals(FailedUnlockIncidentCreator.STATUS_NOT_ATTEMPTED, incident?.photoStatus)
+        assertEquals(FailedUnlockIncidentCreator.STATUS_DISABLED, incident?.videoStatus)
+        assertEquals(FailedUnlockIncidentCreator.STATUS_DISABLED, incident?.locationStatus)
+    }
+
+    private fun creator(
+        monetizationState: MonetizationState = MonetizationState.Pro
+    ): FailedUnlockIncidentCreator =
         FailedUnlockIncidentCreator(
             settingsRepository = settingsRepository,
             incidentRepository = incidentRepository,
@@ -120,6 +142,7 @@ class FailedUnlockIncidentCreatorTest {
                 override val androidVersion: String = "Test Android"
                 override val appVersion: String = "Test App"
             },
+            monetizationStateProvider = { monetizationState },
             clock = { 1234L }
         )
 }

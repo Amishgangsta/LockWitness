@@ -44,6 +44,11 @@ import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.SettingsState
 import com.lockwitness.app.location.AndroidLocationSnapshotClient
 import com.lockwitness.app.location.LocationSnapshotResult
+import com.lockwitness.app.monetization.BannerAdPlaceholder
+import com.lockwitness.app.monetization.MonetizationRepository
+import com.lockwitness.app.monetization.MonetizationState
+import com.lockwitness.app.monetization.ProFeature
+import com.lockwitness.app.monetization.ProFeatureGate
 import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoCaptureResult
 import com.lockwitness.app.video.Camera2VideoCaptureClient
@@ -55,8 +60,13 @@ fun SettingsScreen(contentPadding: PaddingValues) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val repository = remember(context) { SettingsRepository.create(context) }
+    val monetizationRepository = remember(context) { MonetizationRepository.create(context) }
+    val proFeatureGate = remember { ProFeatureGate() }
     val settings by repository.settings.collectAsState(initial = SettingsState.Defaults)
+    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
     val scope = rememberCoroutineScope()
+    val canUseVideo = proFeatureGate.isAllowed(ProFeature.VideoCapture, monetizationState)
+    val canUseLocation = proFeatureGate.isAllowed(ProFeature.LocationSnapshot, monetizationState)
     var isDeviceAdminActive by remember(context) {
         mutableStateOf(DeviceAdminStatus.isActive(context))
     }
@@ -133,6 +143,13 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                 context.startActivity(DeviceAdminStatus.activationIntent(context))
             }
         )
+        MonetizationStatusCard(
+            state = monetizationState,
+            onRefreshBilling = {
+                scope.launch { monetizationRepository.refreshBillingStatus() }
+            }
+        )
+        BannerAdPlaceholder(state = monetizationState)
 
         SettingsToggleRow(
             title = "Master monitoring",
@@ -192,12 +209,14 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                             "Test video failed: ${result.reason}"
                     }
                 }
-            }
+            },
+            canTestVideo = canUseVideo
         )
         SettingsToggleRow(
             title = "Video capture",
-            description = "Default: off",
-            checked = settings.videoCaptureEnabled,
+            description = if (canUseVideo) "Default: off; Pro available" else "Pro feature",
+            checked = settings.videoCaptureEnabled && canUseVideo,
+            enabled = canUseVideo,
             onCheckedChange = { enabled ->
                 scope.launch { repository.setVideoCaptureEnabled(enabled) }
             }
@@ -219,6 +238,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                 SettingsState.AllowedVideoDurations.forEach { duration ->
                     FilterChip(
                         selected = settings.videoDurationSeconds == duration,
+                        enabled = canUseVideo,
                         onClick = {
                             scope.launch { repository.setVideoDurationSeconds(duration) }
                         },
@@ -231,11 +251,12 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         SettingsToggleRow(
             title = "GPS/location capture",
             description = if (isLocationPermissionGranted) {
-                "Permission status: granted"
+                if (canUseLocation) "Permission status: granted" else "Pro feature; permission granted"
             } else {
-                "Permission status: not granted"
+                if (canUseLocation) "Permission status: not granted" else "Pro feature; permission not granted"
             },
-            checked = settings.locationCaptureEnabled,
+            checked = settings.locationCaptureEnabled && canUseLocation,
+            enabled = canUseLocation,
             onCheckedChange = { enabled ->
                 scope.launch { repository.setLocationCaptureEnabled(enabled) }
             }
@@ -265,7 +286,8 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                             "Test location failed: ${result.reason}"
                     }
                 }
-            }
+            },
+            canTestLocation = canUseLocation
         )
         SettingsToggleRow(
             title = "Local timeline",
@@ -311,7 +333,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = "Placeholder only; export logic is not implemented.",
+                        text = "Pro feature; export actions are available from History.",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -319,14 +341,46 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                     onClick = {},
                     enabled = false
                 ) {
-                    Text("Export")
+                    Text("History")
                 }
             }
             AssistChip(
                 onClick = {},
                 enabled = false,
-                label = { Text("Status: unavailable in Phase 2") }
+                label = { Text(if (proFeatureGate.isAllowed(ProFeature.ExportZip, monetizationState)) "Status: Pro enabled" else "Status: Pro required") }
             )
+        }
+    }
+}
+
+@Composable
+private fun MonetizationStatusCard(
+    state: MonetizationState,
+    onRefreshBilling: () -> Unit
+) {
+    SettingsSectionCard {
+        Text(
+            text = "Free / Pro",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            text = if (state.isPro) {
+                "Status: Pro"
+            } else {
+                "Status: Free"
+            },
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = if (state.billingAvailable) {
+                "Billing status: available"
+            } else {
+                "Billing status: unavailable; Free mode remains active"
+            },
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Button(onClick = onRefreshBilling) {
+            Text("Refresh Billing")
         }
     }
 }
@@ -336,7 +390,8 @@ private fun LocationPermissionAndTestCard(
     isLocationPermissionGranted: Boolean,
     testLocationStatus: String,
     onRequestPermission: () -> Unit,
-    onTestLocationSnapshot: () -> Unit
+    onTestLocationSnapshot: () -> Unit,
+    canTestLocation: Boolean
 ) {
     SettingsSectionCard {
         Text(
@@ -363,7 +418,7 @@ private fun LocationPermissionAndTestCard(
             }
             Button(
                 onClick = onTestLocationSnapshot,
-                enabled = isLocationPermissionGranted
+                enabled = isLocationPermissionGranted && canTestLocation
             ) {
                 Text("Test Location")
             }
@@ -422,7 +477,8 @@ private fun PhotoPermissionAndTestCard(
     testVideoStatus: String,
     onRequestPermission: () -> Unit,
     onTestPhotoCapture: () -> Unit,
-    onTestVideoCapture: () -> Unit
+    onTestVideoCapture: () -> Unit,
+    canTestVideo: Boolean
 ) {
     SettingsSectionCard {
         Text(
@@ -455,7 +511,7 @@ private fun PhotoPermissionAndTestCard(
             }
             Button(
                 onClick = onTestVideoCapture,
-                enabled = isCameraPermissionGranted
+                enabled = isCameraPermissionGranted && canTestVideo
             ) {
                 Text("Test Video")
             }
@@ -476,6 +532,7 @@ private fun SettingsToggleRow(
     title: String,
     description: String,
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit
 ) {
     SettingsSectionCard {
@@ -496,7 +553,8 @@ private fun SettingsToggleRow(
             Spacer(modifier = Modifier.padding(horizontal = 8.dp))
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChange
+                onCheckedChange = onCheckedChange,
+                enabled = enabled
             )
         }
     }
