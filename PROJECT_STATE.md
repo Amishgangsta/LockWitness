@@ -19,15 +19,16 @@ Phase 9 local export metadata/CSV/hash/missing-media unit tests passed.
 Phase 10 email/share alert toggle/status/failure-resilience unit tests passed.
 Phase 11 Free/Pro gate, ad placeholder, and billing fallback unit tests passed.
 Phase 12 diagnostics mapping and runtime checklist unit tests passed.
+Phase 14-A device connectivity verified: RF8M3278JVE authorized via adb; debug APK installed; com.lockwitness.app/.MainActivity reached RESUMED state on physical device (2026-05-19). Evidence: ActivityTaskManager Displayed +1s93ms; dumpsys mResumedActivity confirmed.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
 Cloud backend features.
-Runtime launch, Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
+Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
 History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, actual ads/billing environment, and Diagnostics runtime actions remain unverified on device/emulator.
-Release-candidate runtime verification remains blocked until physical Android device or emulator evidence is recorded.
+Release-candidate runtime verification is in progress; device connectivity and app launch to dashboard are now device-verified (Phase 14-A, 2026-05-19). Remaining device verification is blocked pending Phase 14-B authorization.
 
 ## Deferred Features
 Cloud, PDF export, production ads, and production billing integration.
@@ -377,3 +378,20 @@ Reported tested items:
 - Android source files modified: none.
 - Release blockers recorded: physical Android runtime test, Device Admin activation, failed unlock, photo capture, video capture, location snapshot, export ZIP, Android chooser/share, production AdMob, production Play Billing, and final privacy/legal review.
 - Runtime verification: not performed in Codex; no release-ready runtime claim made.
+
+## Phase 14-A — Device Connectivity, APK Install, Launch to Dashboard
+- Branch: main
+- Starting commit: f65275a (add release candidate control audit)
+- Local ZIP backup created: no. No ZIP backup created under reduced backup policy.
+- Device: RF8M3278JVE (Samsung, confirmed authorized via `adb devices`).
+- applicationId: com.lockwitness.app (confirmed from android/app/build.gradle.kts).
+- Prior install found: no. Clean install performed.
+- Build command: `.\gradlew.bat assembleDebug` — BUILD SUCCESSFUL, 37 tasks up-to-date, exit code 0.
+- Install command: `adb install -r app-debug.apk` — Performing Streamed Install / Success.
+- Launch command: `adb shell am start -n com.lockwitness.app/.MainActivity` — Starting: Intent { cmp=com.lockwitness.app/.MainActivity }.
+- Logcat evidence: `ActivityTaskManager: Displayed com.lockwitness.app/.MainActivity: +1s93ms` at 05-19 15:25:12.365.
+- dumpsys evidence: `mResumedActivity`, `Resumed`, and `mCurrentFocus` all confirmed as `com.lockwitness.app/.MainActivity`; task visible=true, mode=fullscreen, process PID=3310.
+- App source files modified: none.
+- Phase report: docs/PHASE_14_A_REPORT.md
+- Acceptance criteria: all met. See phase report.
+- Next authorized phase: Phase 14-B (Device Admin activation) — requires user authorization.
