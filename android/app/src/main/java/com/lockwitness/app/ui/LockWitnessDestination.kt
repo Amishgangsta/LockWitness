@@ -19,3 +19,5 @@ enum class LockWitnessDestination(
     Diagnostics("diagnostics", "Diagnostics", Icons.Outlined.Build),
     About("about", "About", Icons.Outlined.Info)
 }
+
+const val UPGRADE_ROUTE = "upgrade"

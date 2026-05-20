@@ -21,6 +21,7 @@ import com.lockwitness.app.ui.screens.DashboardScreen
 import com.lockwitness.app.ui.screens.DiagnosticsScreen
 import com.lockwitness.app.ui.screens.HistoryScreen
 import com.lockwitness.app.ui.screens.SettingsScreen
+import com.lockwitness.app.ui.screens.UpgradeScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +65,16 @@ fun LockWitnessApp() {
             modifier = Modifier.fillMaxSize()
         ) {
             composable(LockWitnessDestination.Dashboard.route) {
-                DashboardScreen(contentPadding = innerPadding)
+                DashboardScreen(
+                    contentPadding = innerPadding,
+                    onNavigateToUpgrade = { navController.navigate(UPGRADE_ROUTE) }
+                )
+            }
+            composable(UPGRADE_ROUTE) {
+                UpgradeScreen(
+                    contentPadding = innerPadding,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
             composable(LockWitnessDestination.Settings.route) {
                 SettingsScreen(contentPadding = innerPadding)

@@ -7,10 +7,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
-import com.lockwitness.app.BuildConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import java.io.IOException
 
 private val Context.lockWitnessMonetizationDataStore: DataStore<Preferences> by preferencesDataStore(
@@ -21,28 +20,27 @@ class MonetizationRepository(
     private val dataStore: DataStore<Preferences>,
     private val billingService: ProBillingService = SafeFallbackBillingService()
 ) {
-    val state: Flow<MonetizationState> = dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
-        .map { preferences ->
+    val state: Flow<MonetizationState> = combine(
+        dataStore.data.catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        },
+        billingService.purchaseState
+    ) { preferences, billingState ->
+        if (billingState.billingAvailable) {
+            billingState
+        } else {
             MonetizationState(
-                isPro = preferences[Keys.IsPro] ?: BuildConfig.DEBUG,
-                billingAvailable = preferences[Keys.BillingAvailable] ?: BuildConfig.DEBUG
+                isPro = preferences[Keys.IsPro] ?: false,
+                billingAvailable = preferences[Keys.BillingAvailable] ?: false
             )
         }
+    }
 
     suspend fun refreshBillingStatus(): BillingStatus {
         val status = billingService.refreshStatus()
         dataStore.edit { preferences ->
             preferences[Keys.BillingAvailable] = status.available
-            if (!status.available) {
-                preferences[Keys.IsPro] = false
-            }
+            preferences[Keys.IsPro] = if (status.available) status.isPro else false
         }
         return status
     }
@@ -61,6 +59,9 @@ class MonetizationRepository(
 
     companion object {
         fun create(context: Context): MonetizationRepository =
-            MonetizationRepository(context.applicationContext.lockWitnessMonetizationDataStore)
+            MonetizationRepository(
+                dataStore = context.applicationContext.lockWitnessMonetizationDataStore,
+                billingService = PlayBillingService.getInstance(context)
+            )
     }
 }
