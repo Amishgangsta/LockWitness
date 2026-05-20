@@ -20,13 +20,14 @@ Phase 10 email/share alert toggle/status/failure-resilience unit tests passed.
 Phase 11 Free/Pro gate, ad placeholder, and billing fallback unit tests passed.
 Phase 12 diagnostics mapping and runtime checklist unit tests passed.
 Phase 14-A device connectivity verified: RF8M3278JVE authorized via adb; debug APK installed; com.lockwitness.app/.MainActivity reached RESUMED state on physical device (2026-05-19). Evidence: ActivityTaskManager Displayed +1s93ms; dumpsys mResumedActivity confirmed.
+Phase 14-B Device Admin activation and master monitoring toggle persistence verified on physical device (2026-05-19). Evidence: dumpsys device_policy confirms LockWitnessDeviceAdminReceiver active; DataStore xxd confirms master_monitoring_enabled persists true and false across force-stop/relaunch.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
 Cloud backend features.
-Device Admin activation, failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
+Failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
 History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, actual ads/billing environment, and Diagnostics runtime actions remain unverified on device/emulator.
 Release-candidate runtime verification is in progress; device connectivity and app launch to dashboard are now device-verified (Phase 14-A, 2026-05-19). Remaining device verification is blocked pending Phase 14-B authorization.
 
@@ -395,3 +396,17 @@ Reported tested items:
 - Phase report: docs/PHASE_14_A_REPORT.md
 - Acceptance criteria: all met. See phase report.
 - Next authorized phase: Phase 14-B (Device Admin activation) — requires user authorization.
+
+## Phase 14-B — Device Admin Activation + Master Monitoring Toggle Persistence
+- Branch: main
+- Starting commit: 5398410 (cleanup: track CLAUDE.md, gitignore .claude/, remove empty root placeholder)
+- Ending commit: 5398410 (no source changes)
+- Local ZIP backup created: no. No ZIP backup created under reduced backup policy.
+- Device Admin activation: confirmed via Settings screen "Activate" button → system dialog → granted by user.
+- Device Admin active evidence: `adb shell dumpsys device_policy | grep -i lockwitness` returned `com.lockwitness.app/.admin.LockWitnessDeviceAdminReceiver`.
+- Master monitoring ON persistence: DataStore xxd after force-stop/relaunch shows `master_monitoring_enabled` = `0x01` (true).
+- Master monitoring OFF persistence: DataStore xxd after force-stop/relaunch shows `master_monitoring_enabled` = `0x00` (false).
+- App source files modified: none.
+- Phase report: docs/PHASE_14_B_REPORT.md
+- Acceptance criteria: all PASS. See phase report.
+- Next authorized phase: Phase 14-C (failed-unlock callback verification) — requires user authorization.
