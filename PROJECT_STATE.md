@@ -22,13 +22,14 @@ Phase 12 diagnostics mapping and runtime checklist unit tests passed.
 Phase 14-A device connectivity verified: RF8M3278JVE authorized via adb; debug APK installed; com.lockwitness.app/.MainActivity reached RESUMED state on physical device (2026-05-19). Evidence: ActivityTaskManager Displayed +1s93ms; dumpsys mResumedActivity confirmed.
 Phase 14-B Device Admin activation and master monitoring toggle persistence verified on physical device (2026-05-19). Evidence: dumpsys device_policy confirms LockWitnessDeviceAdminReceiver active; DataStore xxd confirms master_monitoring_enabled persists true and false across force-stop/relaunch.
 Phase 14-C failed-unlock callback verified on physical device (2026-05-19). Defect fixed: added watch-login policy to device_admin_policies.xml. Evidence: sqlite3 confirms security_incidents row with triggerType=FAILED_UNLOCK, failedAttemptCount=1, deviceModel=samsung SM-G973U1, androidVersion=12.
+Phase 14-D real photo capture verified on physical device (2026-05-19). Defect fixed: moved capture pipeline to LockWitnessCaptureService foreground service (foregroundServiceType=camera) to bypass Android 12 background camera restriction. Evidence: 4 JPEG files in files/incident_photos/ (3.1–3.3 MB each); WAL confirms photoStatus=SUCCESS, photoPath and imageSha256 populated.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
 Cloud backend features.
-Real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
+Real video capture and real location snapshot remain unverified on device/emulator.
 History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, actual ads/billing environment, and Diagnostics runtime actions remain unverified on device/emulator.
 Release-candidate runtime verification is in progress; device connectivity and app launch to dashboard are now device-verified (Phase 14-A, 2026-05-19). Remaining device verification is blocked pending Phase 14-B authorization.
 
@@ -428,3 +429,20 @@ Reported tested items:
 - Phase report: docs/PHASE_14_C_REPORT.md
 - Acceptance criteria: all PASS. See phase report.
 - Next authorized phase: Phase 14-D (camera permission + photo capture verification) — requires user authorization.
+
+## Phase 14-D — Camera Permission Grant + Real Photo Capture Verification
+- Branch: main
+- Starting commit: ec857d7 (checkpoint: after phase 14-C)
+- Local ZIP backup created: no. No ZIP backup created under reduced backup policy.
+- Defect found and fixed: Android 12 background camera restriction blocked photo capture from inline coroutine in DeviceAdminReceiver. Fix: new LockWitnessCaptureService with foregroundServiceType="camera"; DeviceAdminReceiver now calls startForegroundService. Authorized by user.
+- Build: `.\gradlew.bat assembleDebug` — BUILD SUCCESSFUL, exit code 0.
+- Install: `adb install -r app-debug.apk` — Success.
+- Camera permission: `android.permission.CAMERA: granted=true` confirmed via dumpsys.
+- Foreground service evidence: `ActivityManager: Background started FGS: Allowed` for `LockWitnessCaptureService`.
+- Camera cycle evidence: OPEN → ACTIVE → IDLE → CLOSED without restriction.
+- Photo files: 4 JPEGs in `files/incident_photos/` (3.1–3.3 MB each).
+- WAL evidence: `photoStatus=SUCCESS`, `photoPath=incident_1779246097329.jpg`, `imageSha256=2a3c119cf3b2277c48da9e4f05b33727454e52ced1f676ef8b15b8f11b985ab2`.
+- App source files modified: AndroidManifest.xml, LockWitnessDeviceAdminReceiver.kt, LockWitnessCaptureService.kt (new).
+- Phase report: docs/PHASE_14_D_REPORT.md
+- Acceptance criteria: all PASS. See phase report.
+- Next authorized phase: Phase 14-E (location permission + location snapshot verification) — requires user authorization.

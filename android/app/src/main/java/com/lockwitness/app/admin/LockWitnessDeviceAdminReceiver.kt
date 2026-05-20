@@ -5,22 +5,7 @@ import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.lockwitness.app.alert.AlertIncidentUpdater
-import com.lockwitness.app.data.SettingsRepository
-import com.lockwitness.app.data.incident.LockWitnessDatabase
-import com.lockwitness.app.data.incident.SecurityIncidentRepository
-import com.lockwitness.app.location.AndroidLocationSnapshotClient
-import com.lockwitness.app.location.LocationIncidentUpdater
-import com.lockwitness.app.monetization.MonetizationRepository
-import com.lockwitness.app.photo.Camera2PhotoCaptureClient
-import com.lockwitness.app.photo.PhotoIncidentUpdater
-import com.lockwitness.app.video.Camera2VideoCaptureClient
-import com.lockwitness.app.video.VideoIncidentUpdater
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import com.lockwitness.app.capture.LockWitnessCaptureService
 
 class LockWitnessDeviceAdminReceiver : DeviceAdminReceiver() {
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
@@ -38,43 +23,9 @@ class LockWitnessDeviceAdminReceiver : DeviceAdminReceiver() {
             0
         }
 
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            val settingsRepository = SettingsRepository.create(appContext)
-            val monetizationRepository = MonetizationRepository.create(appContext)
-            val incidentRepository = SecurityIncidentRepository(
-                LockWitnessDatabase.getInstance(appContext).securityIncidentDao()
-            )
-            val incidentId = FailedUnlockIncidentCreator(
-                settingsRepository = settingsRepository,
-                incidentRepository = incidentRepository,
-                deviceInfoProvider = AndroidDeviceInfoProvider(appContext),
-                monetizationStateProvider = { monetizationRepository.state.first() }
-            ).createIncidentShell(failedAttemptCount)
-
-            if (incidentId != null) {
-                val settings = settingsRepository.settings.first()
-                PhotoIncidentUpdater(
-                    incidentRepository = incidentRepository,
-                    photoCaptureClient = Camera2PhotoCaptureClient(appContext)
-                ).updateIncidentPhoto(incidentId)
-
-                VideoIncidentUpdater(
-                    incidentRepository = incidentRepository,
-                    videoCaptureClient = Camera2VideoCaptureClient(appContext)
-                ).updateIncidentVideo(
-                    incidentId = incidentId,
-                    durationSeconds = settings.videoDurationSeconds
-                )
-
-                LocationIncidentUpdater(
-                    incidentRepository = incidentRepository,
-                    locationSnapshotClient = AndroidLocationSnapshotClient(appContext)
-                ).updateIncidentLocation(incidentId)
-
-                AlertIncidentUpdater(
-                    incidentRepository = incidentRepository
-                ).markUserActionRequired(incidentId)
-            }
+        val serviceIntent = Intent(appContext, LockWitnessCaptureService::class.java).apply {
+            putExtra(LockWitnessCaptureService.EXTRA_FAILED_ATTEMPT_COUNT, failedAttemptCount)
         }
+        appContext.startForegroundService(serviceIntent)
     }
 }
