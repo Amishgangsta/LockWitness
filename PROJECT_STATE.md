@@ -21,13 +21,14 @@ Phase 11 Free/Pro gate, ad placeholder, and billing fallback unit tests passed.
 Phase 12 diagnostics mapping and runtime checklist unit tests passed.
 Phase 14-A device connectivity verified: RF8M3278JVE authorized via adb; debug APK installed; com.lockwitness.app/.MainActivity reached RESUMED state on physical device (2026-05-19). Evidence: ActivityTaskManager Displayed +1s93ms; dumpsys mResumedActivity confirmed.
 Phase 14-B Device Admin activation and master monitoring toggle persistence verified on physical device (2026-05-19). Evidence: dumpsys device_policy confirms LockWitnessDeviceAdminReceiver active; DataStore xxd confirms master_monitoring_enabled persists true and false across force-stop/relaunch.
+Phase 14-C failed-unlock callback verified on physical device (2026-05-19). Defect fixed: added watch-login policy to device_admin_policies.xml. Evidence: sqlite3 confirms security_incidents row with triggerType=FAILED_UNLOCK, failedAttemptCount=1, deviceModel=samsung SM-G973U1, androidVersion=12.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
 Cloud backend features.
-Failed-unlock callback behavior, real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
+Real photo capture, real video capture, and real location snapshot remain unverified on device/emulator.
 History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, actual ads/billing environment, and Diagnostics runtime actions remain unverified on device/emulator.
 Release-candidate runtime verification is in progress; device connectivity and app launch to dashboard are now device-verified (Phase 14-A, 2026-05-19). Remaining device verification is blocked pending Phase 14-B authorization.
 
@@ -410,3 +411,20 @@ Reported tested items:
 - Phase report: docs/PHASE_14_B_REPORT.md
 - Acceptance criteria: all PASS. See phase report.
 - Next authorized phase: Phase 14-C (failed-unlock callback verification) — requires user authorization.
+
+## Phase 14-C — Failed-Unlock Callback Verification
+- Branch: main
+- Starting commit: be6fcdb (checkpoint: after phase 14-B)
+- Local ZIP backup created: no. No ZIP backup created under reduced backup policy.
+- Defect found and fixed: `<watch-login />` missing from `android/app/src/main/res/xml/device_admin_policies.xml`; without it, Android does not deliver `onPasswordFailed` to the receiver. Fix authorized by user.
+- Build: `.\gradlew.bat assembleDebug` — BUILD SUCCESSFUL, exit code 0.
+- Install: `adb install -r app-debug.apk` — Success.
+- Device Admin re-activated by user after APK upgrade to register new policy.
+- Post-fix policy evidence: `dumpsys device_policy` shows `policies: watch-login` for `com.lockwitness.app/.admin.LockWitnessDeviceAdminReceiver`.
+- Failed unlock test: 3 wrong PIN entries confirmed in logcat via `KeyguardSecSecurityView: reportFailedUnlockAttempt` at 22:43:51, 22:43:56, 22:43:59.
+- Room DB evidence: `lockwitness.db` created; sqlite3 query returns `id=1, triggerType=FAILED_UNLOCK, failedAttemptCount=1, deviceModel=samsung SM-G973U1, androidVersion=12, notes=Incident shell created from failed unlock event.`
+- WAL evidence: 3 occurrences of `FAILED_UNLOCK` in WAL confirming callback fired for each attempt.
+- App source files modified: `android/app/src/main/res/xml/device_admin_policies.xml` (watch-login added).
+- Phase report: docs/PHASE_14_C_REPORT.md
+- Acceptance criteria: all PASS. See phase report.
+- Next authorized phase: Phase 14-D (camera permission + photo capture verification) — requires user authorization.
