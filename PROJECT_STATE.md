@@ -25,6 +25,7 @@ Phase 14-C failed-unlock callback verified on physical device (2026-05-19). Defe
 Phase 14-D real photo capture verified on physical device (2026-05-19). Defect fixed: moved capture pipeline to LockWitnessCaptureService foreground service (foregroundServiceType=camera) to bypass Android 12 background camera restriction. Evidence: 4 JPEG files in files/incident_photos/ (3.1–3.3 MB each); WAL confirms photoStatus=SUCCESS, photoPath and imageSha256 populated.
 Phase 14-E location permission grant and location snapshot behavior verified on physical device (2026-05-19/20). Debug Pro mode override applied (BuildConfig.DEBUG default) to ungate LocationSnapshot. locationStatus=UNAVAILABLE confirmed as correct behavior for WiFi-only device with no GPS fix (raw LocationManager cache empty; FusedLocationProvider does not populate it). photoStatus=SUCCESS continues working. Evidence: sqlite3 incidents 14–16 show photoStatus=SUCCESS, locationStatus=UNAVAILABLE, notes="Location unavailable: No last known location available."
 Phase 14-F manual export ZIP verified on physical device (2026-05-20). Evidence: 41 MB ZIP in files/exports/; contains metadata.json (incidentCount=19), incidents.csv (21 cols, 19 rows), hashes.txt, photos/ (13 JPEGs). All 13 SHA-256 hashes in hashes.txt match sha256sum of extracted files.
+Phase 14-G Android share/chooser verified on physical device (2026-05-20). Evidence: share toggle enabled (DataStore confirmed); incidents 20–22 created with shareEnabled=1, photoStatus=SUCCESS; Send tapped on incident 22; Android chooser appeared; shareStatus=SUCCESS written to Room; photoPath/imageSha256/photoStatus unchanged.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
@@ -481,3 +482,17 @@ Reported tested items:
 - Phase report: docs/PHASE_14_F_REPORT.md
 - Acceptance criteria: all PASS. See phase report.
 - Next authorized phase: Phase 14-G (share/chooser verification) — requires user authorization.
+
+## Phase 14-G — Android Share/Chooser Verification
+- Branch: main
+- Starting commit: 3b08364 (checkpoint: after phase 14-F)
+- Local ZIP backup created: no. No ZIP backup created under reduced backup policy.
+- Source changes: none.
+- Share toggle: enabled by user; DataStore `share_alert_enabled=0x01` confirmed.
+- Incidents 20–22 created with shareEnabled=1, photoStatus=SUCCESS.
+- Send tapped on incident 22: Android chooser appeared (user confirmed).
+- Post-send DB: incident 22 shareStatus=SUCCESS; photoPath, imageSha256, photoStatus all intact; notes appended correctly.
+- App source files modified: none.
+- Phase report: docs/PHASE_14_G_REPORT.md
+- Acceptance criteria: all PASS. See phase report.
+- Next authorized phase: Phase 14-H (Diagnostics screen runtime verification) — requires user authorization.
