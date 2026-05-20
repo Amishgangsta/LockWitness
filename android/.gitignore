@@ -8,3 +8,7 @@ captures/
 *.apk
 *.aab
 app/build/
+# Release signing — never commit these
+*.jks
+*.keystore
+keystore.properties

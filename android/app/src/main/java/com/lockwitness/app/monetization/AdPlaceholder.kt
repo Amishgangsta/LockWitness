@@ -11,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+// TODO Phase 18: Replace with production AdMob app ID (in AndroidManifest.xml) and
+// production banner ad unit ID below before wide release. The ID below is Google's
+// public test banner ID and must not be used in a widely-distributed production build.
 const val TEST_BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
 
 @Composable
