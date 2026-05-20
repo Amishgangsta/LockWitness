@@ -23,13 +23,14 @@ Phase 14-A device connectivity verified: RF8M3278JVE authorized via adb; debug A
 Phase 14-B Device Admin activation and master monitoring toggle persistence verified on physical device (2026-05-19). Evidence: dumpsys device_policy confirms LockWitnessDeviceAdminReceiver active; DataStore xxd confirms master_monitoring_enabled persists true and false across force-stop/relaunch.
 Phase 14-C failed-unlock callback verified on physical device (2026-05-19). Defect fixed: added watch-login policy to device_admin_policies.xml. Evidence: sqlite3 confirms security_incidents row with triggerType=FAILED_UNLOCK, failedAttemptCount=1, deviceModel=samsung SM-G973U1, androidVersion=12.
 Phase 14-D real photo capture verified on physical device (2026-05-19). Defect fixed: moved capture pipeline to LockWitnessCaptureService foreground service (foregroundServiceType=camera) to bypass Android 12 background camera restriction. Evidence: 4 JPEG files in files/incident_photos/ (3.1–3.3 MB each); WAL confirms photoStatus=SUCCESS, photoPath and imageSha256 populated.
+Phase 14-E location permission grant and location snapshot behavior verified on physical device (2026-05-19). Debug Pro mode override applied (BuildConfig.DEBUG default) to ungate LocationSnapshot. locationStatus=UNAVAILABLE confirmed as correct behavior for WiFi-only device with no GPS fix (raw LocationManager cache empty; FusedLocationProvider does not populate it). photoStatus=SUCCESS continues working. Evidence: sqlite3 incidents 14–16 show photoStatus=SUCCESS, locationStatus=UNAVAILABLE, notes="Location unavailable: No last known location available."
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
 Cloud backend features.
-Real video capture and real location snapshot remain unverified on device/emulator.
+Real video capture remains unverified on device/emulator. Location snapshot code path verified (UNAVAILABLE — no GPS fix in test environment); SUCCESS path deferred to outdoor/emulator test.
 History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, actual ads/billing environment, and Diagnostics runtime actions remain unverified on device/emulator.
 Release-candidate runtime verification is in progress; device connectivity and app launch to dashboard are now device-verified (Phase 14-A, 2026-05-19). Remaining device verification is blocked pending Phase 14-B authorization.
 
@@ -446,3 +447,20 @@ Reported tested items:
 - Phase report: docs/PHASE_14_D_REPORT.md
 - Acceptance criteria: all PASS. See phase report.
 - Next authorized phase: Phase 14-E (location permission + location snapshot verification) — requires user authorization.
+
+## Phase 14-E — Location Permission Grant + Real Location Snapshot Verification
+- Branch: main
+- Starting commit: ac2a7de (checkpoint: after phase 14-D)
+- Local ZIP backup created: no. No ZIP backup created under reduced backup policy.
+- Source changes authorized: debug Pro mode override via BuildConfig.DEBUG in MonetizationRepository; buildConfig = true in build.gradle.kts.
+- Build: `.\gradlew.bat assembleDebug` — BUILD SUCCESSFUL, exit code 0.
+- Install: `adb install -r app-debug.apk` — Success.
+- Location permission: ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION both granted=true (dumpsys confirmed).
+- DataStore evidence: location_capture_enabled=0x01 confirmed after toggle enabled in Settings.
+- Failed unlock evidence: 3× reportFailedUnlockAttempt and 3× Background started FGS: Allowed for LockWitnessCaptureService at 23:19:25–23:19:31.
+- locationStatus=UNAVAILABLE: correct for WiFi-only device (no cellular), indoors, USB-tethered. Raw LocationManager cache empty; Google Maps FusedLocationProvider does not populate it.
+- photoStatus=SUCCESS: continues working on all 6 Phase 14-E incidents (ids 11–16).
+- App source files modified: android/app/build.gradle.kts, android/app/src/main/java/com/lockwitness/app/monetization/MonetizationRepository.kt.
+- Phase report: docs/PHASE_14_E_REPORT.md
+- Acceptance criteria: all PASS. See phase report.
+- Next authorized phase: Phase 14-F (manual export ZIP verification) — requires user authorization.

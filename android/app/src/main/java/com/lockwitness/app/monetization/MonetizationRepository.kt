@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.lockwitness.app.BuildConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -30,8 +31,8 @@ class MonetizationRepository(
         }
         .map { preferences ->
             MonetizationState(
-                isPro = preferences[Keys.IsPro] ?: MonetizationState.Free.isPro,
-                billingAvailable = preferences[Keys.BillingAvailable] ?: MonetizationState.Free.billingAvailable
+                isPro = preferences[Keys.IsPro] ?: BuildConfig.DEBUG,
+                billingAvailable = preferences[Keys.BillingAvailable] ?: BuildConfig.DEBUG
             )
         }
 
