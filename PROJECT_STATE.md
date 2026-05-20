@@ -4,7 +4,7 @@
 LockWitness is an owner-controlled Android failed-unlock evidence recorder.
 
 ## Current Phase
-Phase 15 — Production Monetization (Google Play Billing). COMPLETE.
+Phase 16 — Privacy/Legal Finalization. COMPLETE.
 
 ## Verified Features
 Phase 1 Android app skeleton build verified.
@@ -29,6 +29,7 @@ Phase 14-G Android share/chooser verified on physical device (2026-05-20). Evide
 Phase 14-H Diagnostics screen runtime verified on physical device (2026-05-20). All 14 checks rendered correctly; Photo/Location/Export/Share Chooser/Video diagnostic actions all PASS. Notable: first confirmed video capture on device (3.1 MB MP4); Location diagnostic PASS (LocationManager cache warm from outdoor trip — confirms locationStatus=SUCCESS achievable on this hardware).
 Phase 14-I Final runtime state summary and release-readiness assessment completed (2026-05-20). Verdict: NOT READY for Play Store submission. Core app functionality fully verified. Remaining blockers: production AdMob setup, production Play Billing setup, and final privacy/legal review. See docs/PHASE_14_I_REPORT.md.
 Phase 15 Production monetization implemented (2026-05-20). Google Play Billing Library v7.1.1 added. PlayBillingService, ProProduct, UpgradeScreen, real DashboardScreen, and nav wiring all implemented and build-verified. 53 unit tests pass. APK installed on device. Live billing flow requires Play Console product configuration (Phase 17). See docs/PHASE_15_REPORT.md.
+Phase 16 Privacy/legal finalization completed (2026-05-20). store/privacy-policy-draft.md, store/play-store-listing-draft.md, store/permission-disclosures.md updated with subscription/billing terms, auto-renewal disclosures, cancellation policy, AdMob disclosure. play-store-submission-blockers.md updated with cleared items (Phases 14–15) and structured Phase 17 checklist. No Android source files modified. See docs/PHASE_16_REPORT.md.
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
@@ -105,7 +106,7 @@ C:\Projects\LockWitness\backups\phase-15-after-20260520-084804.zip
 Release candidate is blocked for production submission until runtime verification, production monetization setup, and final privacy/legal review are completed.
 
 ## Next Authorized Phase
-Phase 15 complete. Next phases require explicit authorization: Phase 16 (privacy/legal finalization — update billing/subscription terms), Phase 17 (release build + Play Store submission).
+Phase 16 complete. Next phase requires explicit authorization: Phase 17 (release build + Play Store submission — signing, AAB, Play Console product config, AdMob production ID, billing flow verification, Data safety form, submission).
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
