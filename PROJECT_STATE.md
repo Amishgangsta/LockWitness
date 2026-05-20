@@ -26,13 +26,14 @@ Phase 14-D real photo capture verified on physical device (2026-05-19). Defect f
 Phase 14-E location permission grant and location snapshot behavior verified on physical device (2026-05-19/20). Debug Pro mode override applied (BuildConfig.DEBUG default) to ungate LocationSnapshot. locationStatus=UNAVAILABLE confirmed as correct behavior for WiFi-only device with no GPS fix (raw LocationManager cache empty; FusedLocationProvider does not populate it). photoStatus=SUCCESS continues working. Evidence: sqlite3 incidents 14–16 show photoStatus=SUCCESS, locationStatus=UNAVAILABLE, notes="Location unavailable: No last known location available."
 Phase 14-F manual export ZIP verified on physical device (2026-05-20). Evidence: 41 MB ZIP in files/exports/; contains metadata.json (incidentCount=19), incidents.csv (21 cols, 19 rows), hashes.txt, photos/ (13 JPEGs). All 13 SHA-256 hashes in hashes.txt match sha256sum of extracted files.
 Phase 14-G Android share/chooser verified on physical device (2026-05-20). Evidence: share toggle enabled (DataStore confirmed); incidents 20–22 created with shareEnabled=1, photoStatus=SUCCESS; Send tapped on incident 22; Android chooser appeared; shareStatus=SUCCESS written to Room; photoPath/imageSha256/photoStatus unchanged.
+Phase 14-H Diagnostics screen runtime verified on physical device (2026-05-20). All 14 checks rendered correctly; Photo/Location/Export/Share Chooser/Video diagnostic actions all PASS. Notable: first confirmed video capture on device (3.1 MB MP4); Location diagnostic PASS (LocationManager cache warm from outdoor trip — confirms locationStatus=SUCCESS achievable on this hardware).
 
 ## Verified Control Status
 Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
 Cloud backend features.
-Real video capture remains unverified on device/emulator. Location snapshot code path verified (UNAVAILABLE — no GPS fix in test environment); SUCCESS path deferred to outdoor/emulator test.
+Video capture verified in app foreground via Diagnostics (3.1 MB MP4, 2026-05-20); foreground service path on failed unlock remains unverified. Location snapshot PASS confirmed via Diagnostics (warm GPS cache after outdoor trip); SUCCESS path in Room incident record deferred.
 History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, actual ads/billing environment, and Diagnostics runtime actions remain unverified on device/emulator.
 Release-candidate runtime verification is in progress; device connectivity and app launch to dashboard are now device-verified (Phase 14-A, 2026-05-19). Remaining device verification is blocked pending Phase 14-B authorization.
 
@@ -496,3 +497,19 @@ Reported tested items:
 - Phase report: docs/PHASE_14_G_REPORT.md
 - Acceptance criteria: all PASS. See phase report.
 - Next authorized phase: Phase 14-H (Diagnostics screen runtime verification) — requires user authorization.
+
+## Phase 14-H — Diagnostics Screen Runtime Verification
+- Branch: main
+- Starting commit: fec0175 (checkpoint: after phase 14-G)
+- Local ZIP backup created: no. No ZIP backup created under reduced backup policy.
+- Source changes: none.
+- All 14 diagnostic checks rendered correctly; Video toggle WARNING expected and confirmed.
+- Photo diagnostic PASS: 2 JPEGs written to files/incident_photos/ at 07:11.
+- Location diagnostic PASS: LocationManager cache warm from outdoor trip; first SUCCESS on this device.
+- Export diagnostic PASS: lockwitness_diagnostic_1779275684253.zip (50.5 MB) in files/exports/.
+- Share Chooser diagnostic PASS: chooser check updated from NOT_TESTED to PASS.
+- Video diagnostic PASS: incident_1779275874802.mp4 (3.1 MB) in files/incident_videos/ — first confirmed video capture on device.
+- App source files modified: none.
+- Phase report: docs/PHASE_14_H_REPORT.md
+- Acceptance criteria: all PASS. See phase report.
+- Next authorized phase: Phase 14-I (final runtime state summary + release-readiness assessment) — requires user authorization.
