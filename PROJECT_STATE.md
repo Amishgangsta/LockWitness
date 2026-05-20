@@ -71,7 +71,7 @@ Create local ZIP backups only before and after high-risk phases, release candida
 Each phase record must include the relevant commit hash and whether a local ZIP backup was created. If no ZIP backup is created, the phase report must say: “No ZIP backup created under reduced backup policy.”
 
 ## Last Backup
-C:\Projects\LockWitness\backups\phase-15-after-20260520-084804.zip
+C:\Projects\LockWitness\backups\phase-17-after-20260520-093612.zip
 
 ## Last Verified Build
 2026-05-20: Phase 17 `.\gradlew.bat bundleRelease` — BUILD SUCCESSFUL, app-release.aab 3.18 MB, signed with lockwitness-release.jks.
