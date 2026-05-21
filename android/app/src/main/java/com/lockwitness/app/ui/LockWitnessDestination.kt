@@ -13,7 +13,7 @@ enum class LockWitnessDestination(
     val label: String,
     val icon: ImageVector
 ) {
-    Dashboard("dashboard", "Dashboard", Icons.Outlined.Home),
+    Dashboard("dashboard", "Home", Icons.Outlined.Home),
     Settings("settings", "Settings", Icons.Outlined.Settings),
     History("history", "History", Icons.Outlined.History),
     Diagnostics("diagnostics", "Diagnostics", Icons.Outlined.Build),

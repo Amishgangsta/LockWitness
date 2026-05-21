@@ -45,7 +45,7 @@ fun LockWitnessApp() {
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
         topBar = {
             TopAppBar(
-                title = { Text(text = "LockWitness") },
+                title = { Text(text = "Lock Witness") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = LockWitnessSurfaceRaised,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
@@ -94,7 +94,8 @@ fun LockWitnessApp() {
             composable(LockWitnessDestination.Dashboard.route) {
                 DashboardScreen(
                     contentPadding = innerPadding,
-                    onNavigateToUpgrade = { navController.navigate(UPGRADE_ROUTE) }
+                    onNavigateToUpgrade = { navController.navigate(UPGRADE_ROUTE) },
+                    onNavigateToSettings = { navController.navigate(LockWitnessDestination.Settings.route) }
                 )
             }
             composable(UPGRADE_ROUTE) {

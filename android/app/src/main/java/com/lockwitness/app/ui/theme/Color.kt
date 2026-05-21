@@ -36,3 +36,10 @@ val LockWitnessDivider = Color(0xFF1F1F1F)
 
 val LockWitnessOnPrimary = Color(0xFFFFFFFF)
 val LockWitnessOnDark = Color(0xFFF4F7FA)
+
+// Dashboard-spec aliases
+val LWSuccessGreen = Color(0xFF22C55E)
+val LWAccentRed = Color(0xFFEF4444)
+val LWChrome = Color(0xFFB8C0C8)
+val LWTextPrimary = Color(0xFFF4F7FA)
+val LWTextSecondary = Color(0xFFAAB7C4)
