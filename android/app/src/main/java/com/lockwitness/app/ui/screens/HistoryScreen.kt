@@ -1,19 +1,39 @@
 package com.lockwitness.app.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.FileDownload
+import androidx.compose.material.icons.outlined.FolderOff
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -21,12 +41,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.lockwitness.app.alert.AlertIncidentUpdater
 import com.lockwitness.app.alert.AlertShareIntentBuilder
@@ -38,19 +63,28 @@ import com.lockwitness.app.monetization.MonetizationRepository
 import com.lockwitness.app.monetization.MonetizationState
 import com.lockwitness.app.monetization.ProFeature
 import com.lockwitness.app.monetization.ProFeatureGate
+import com.lockwitness.app.ui.components.ForensicCard
+import com.lockwitness.app.ui.components.SectionEyebrow
+import com.lockwitness.app.ui.components.StatusPill
 import com.lockwitness.app.ui.history.IncidentDetailUi
 import com.lockwitness.app.ui.history.IncidentHistoryActions
 import com.lockwitness.app.ui.history.IncidentHistoryMapper
 import com.lockwitness.app.ui.history.IncidentSummaryUi
+import com.lockwitness.app.ui.theme.LockWitnessBackground
+import com.lockwitness.app.ui.theme.LockWitnessBorder
+import com.lockwitness.app.ui.theme.LockWitnessPrimary
+import com.lockwitness.app.ui.theme.LockWitnessSurfaceRaised
+import com.lockwitness.app.ui.theme.LockWitnessSurfaceVariant
+import com.lockwitness.app.ui.theme.LockWitnessTextSecondary
 import kotlinx.coroutines.launch
+
+internal enum class HistoryFilter { All, Photos, Videos, Location }
 
 @Composable
 fun HistoryScreen(contentPadding: PaddingValues) {
     val context = LocalContext.current
     val repository = remember(context) {
-        SecurityIncidentRepository(
-            LockWitnessDatabase.getInstance(context).securityIncidentDao()
-        )
+        SecurityIncidentRepository(LockWitnessDatabase.getInstance(context).securityIncidentDao())
     }
     val mapper = remember { IncidentHistoryMapper() }
     val actions = remember(repository) { IncidentHistoryActions(repository) }
@@ -60,23 +94,32 @@ fun HistoryScreen(contentPadding: PaddingValues) {
     val monetizationRepository = remember(context) { MonetizationRepository.create(context) }
     val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
     val proFeatureGate = remember { ProFeatureGate() }
-    val incidents by repository
-        .getAllOrderedByTimestampDesc()
-        .collectAsState(initial = emptyList())
+    val incidents by repository.getAllOrderedByTimestampDesc().collectAsState(initial = emptyList())
     val visibleIncidents = proFeatureGate.visibleHistory(incidents, monetizationState)
     var selectedIncidentId by remember { mutableLongStateOf(NO_SELECTION) }
     val selectedIncident = visibleIncidents.firstOrNull { it.id == selectedIncidentId }
-    var exportStatus by remember { androidx.compose.runtime.mutableStateOf("No export created.") }
+    var exportStatus by remember { mutableStateOf("") }
+    var activeFilter by remember { mutableStateOf(HistoryFilter.All) }
     val scope = rememberCoroutineScope()
+
+    val filteredIncidents = when (activeFilter) {
+        HistoryFilter.All -> visibleIncidents
+        HistoryFilter.Photos -> visibleIncidents.filter { it.photoStatus == "SUCCESS" }
+        HistoryFilter.Videos -> visibleIncidents.filter { it.videoStatus == "SUCCESS" }
+        HistoryFilter.Location -> visibleIncidents.filter { it.latitude != null }
+    }
 
     HistoryContent(
         contentPadding = contentPadding,
-        incidents = visibleIncidents,
+        incidents = filteredIncidents,
+        allIncidents = visibleIncidents,
         totalIncidentCount = incidents.size,
         selectedIncident = selectedIncident,
         mapper = mapper,
         monetizationState = monetizationState,
         canExport = proFeatureGate.isAllowed(ProFeature.ExportZip, monetizationState),
+        activeFilter = activeFilter,
+        onFilterChange = { activeFilter = it },
         onSelectIncident = { selectedIncidentId = it },
         onBackToTimeline = { selectedIncidentId = NO_SELECTION },
         onDeleteIncident = { id ->
@@ -94,33 +137,30 @@ fun HistoryScreen(contentPadding: PaddingValues) {
         exportStatus = exportStatus,
         onExportAll = {
             scope.launch {
-                exportStatus = "Creating local ZIP export..."
+                exportStatus = "Creating export…"
                 val result = exporter.exportIncidents(visibleIncidents, filePrefix = "lockwitness_all_incidents")
-                exportStatus = "Export saved locally: ${result.file.absolutePath}"
+                exportStatus = "Saved: ${result.file.name}"
             }
         },
         onExportIncident = { incident ->
             scope.launch {
-                exportStatus = "Creating local ZIP export..."
+                exportStatus = "Creating export…"
                 val result = exporter.exportIncidents(listOf(incident), filePrefix = "lockwitness_incident_${incident.id}")
-                exportStatus = "Export saved locally: ${result.file.absolutePath}"
+                exportStatus = "Saved: ${result.file.name}"
             }
         },
         onSendIncident = { incident ->
             scope.launch {
-                exportStatus = "Creating local ZIP export for chooser..."
+                exportStatus = "Preparing share…"
                 val result = exporter.exportIncidents(listOf(incident), filePrefix = "lockwitness_incident_${incident.id}")
                 runCatching {
                     context.startActivity(shareIntentBuilder.buildChooserIntent(result.file))
                 }.onSuccess {
                     alertUpdater.markManualShareLaunched(incident.id)
-                    exportStatus = "Chooser opened for local export: ${result.file.absolutePath}"
+                    exportStatus = "Chooser opened."
                 }.onFailure { error ->
-                    alertUpdater.markManualShareFailed(
-                        incidentId = incident.id,
-                        reason = error.message ?: "No compatible chooser activity."
-                    )
-                    exportStatus = "Chooser unavailable; local export saved: ${result.file.absolutePath}"
+                    alertUpdater.markManualShareFailed(incident.id, error.message ?: "No compatible chooser.")
+                    exportStatus = "Saved locally: ${result.file.name}"
                 }
             }
         }
@@ -131,11 +171,14 @@ fun HistoryScreen(contentPadding: PaddingValues) {
 internal fun HistoryContent(
     contentPadding: PaddingValues,
     incidents: List<SecurityIncident>,
+    allIncidents: List<SecurityIncident>,
     totalIncidentCount: Int,
     selectedIncident: SecurityIncident?,
     mapper: IncidentHistoryMapper,
     monetizationState: MonetizationState,
     canExport: Boolean,
+    activeFilter: HistoryFilter,
+    onFilterChange: (HistoryFilter) -> Unit,
     onSelectIncident: (Long) -> Unit,
     onBackToTimeline: () -> Unit,
     onDeleteIncident: (Long) -> Unit,
@@ -148,70 +191,396 @@ internal fun HistoryContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(LockWitnessBackground, Color(0xFF0F0F0F), LockWitnessBackground)
+                )
+            )
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "History",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                Text(
-                    text = if (monetizationState.isPro || totalIncidentCount <= incidents.size) {
-                        "Local incident timeline"
-                    } else {
-                        "Local incident timeline: showing ${incidents.size} of $totalIncidentCount in Free mode"
-                    },
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            OutlinedButton(
-                onClick = onClearAll,
-                enabled = incidents.isNotEmpty()
-            ) {
-                Text("Clear All")
-            }
-        }
-        OutlinedButton(
-            onClick = onExportAll,
-            enabled = incidents.isNotEmpty() && canExport
-        ) {
-            Text(if (canExport) "Export All" else "Export All Pro")
-        }
-        Text(
-            text = exportStatus,
-            style = MaterialTheme.typography.bodyMedium
-        )
-
         when {
-            selectedIncident != null -> IncidentDetailCard(
-                detail = mapper.toDetail(selectedIncident),
-                onBack = onBackToTimeline,
-                onDelete = { onDeleteIncident(selectedIncident.id) },
-                onExport = { onExportIncident(selectedIncident) },
-                onSend = { onSendIncident(selectedIncident) },
-                canSend = selectedIncident.emailEnabled || selectedIncident.shareEnabled,
-                canExport = canExport
-            )
-
-            incidents.isEmpty() -> EmptyHistoryCard()
+            selectedIncident != null -> {
+                IncidentDetailView(
+                    detail = mapper.toDetail(selectedIncident),
+                    incident = selectedIncident,
+                    onBack = onBackToTimeline,
+                    onDelete = { onDeleteIncident(selectedIncident.id) },
+                    onExport = { onExportIncident(selectedIncident) },
+                    onSend = { onSendIncident(selectedIncident) },
+                    canSend = selectedIncident.emailEnabled || selectedIncident.shareEnabled,
+                    canExport = canExport,
+                    exportStatus = exportStatus
+                )
+            }
 
             else -> {
-                incidents.forEach { incident ->
-                    IncidentSummaryCard(
-                        summary = mapper.toSummary(incident),
-                        onOpen = { onSelectIncident(incident.id) },
-                        onDelete = { onDeleteIncident(incident.id) }
+                // Filter tabs
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    HistoryFilter.entries.forEach { filter ->
+                        FilterChip(
+                            selected = activeFilter == filter,
+                            onClick = { onFilterChange(filter) },
+                            label = {
+                                Text(
+                                    text = filter.name,
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = LockWitnessPrimary,
+                                selectedLabelColor = Color.White,
+                                containerColor = LockWitnessSurfaceRaised,
+                                labelColor = LockWitnessTextSecondary
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = activeFilter == filter,
+                                borderColor = LockWitnessBorder,
+                                selectedBorderColor = LockWitnessPrimary
+                            )
+                        )
+                    }
+                }
+
+                // Summary + actions bar
+                if (allIncidents.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${allIncidents.size} incident${if (allIncidents.size != 1) "s" else ""}${
+                                if (!monetizationState.isPro && totalIncidentCount > allIncidents.size)
+                                    " (${totalIncidentCount} total — upgrade for full history)"
+                                else ""
+                            }",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = LockWitnessTextSecondary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (canExport) {
+                            OutlinedButton(
+                                onClick = onExportAll,
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = LockWitnessPrimary),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, LockWitnessPrimary)
+                            ) {
+                                Text("Export All")
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = onClearAll,
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = LockWitnessTextSecondary),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, LockWitnessBorder)
+                        ) {
+                            Text("Clear All")
+                        }
+                    }
+                    if (exportStatus.isNotEmpty()) {
+                        Text(exportStatus, style = MaterialTheme.typography.bodySmall, color = LockWitnessTextSecondary)
+                    }
+                }
+
+                // Incident list
+                if (incidents.isEmpty()) {
+                    ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.FolderOff,
+                                contentDescription = null,
+                                tint = LockWitnessTextSecondary,
+                                modifier = Modifier.size(40.dp)
+                            )
+                            Text(
+                                text = if (activeFilter == HistoryFilter.All) "No incidents recorded"
+                                else "No ${activeFilter.name.lowercase()} captured",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Failed-unlock records appear here after monitoring captures evidence.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = LockWitnessTextSecondary
+                            )
+                        }
+                    }
+                } else {
+                    incidents.forEach { incident ->
+                        IncidentSummaryRow(
+                            summary = mapper.toSummary(incident),
+                            incident = incident,
+                            onOpen = { onSelectIncident(incident.id) },
+                            onDelete = { onDeleteIncident(incident.id) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun IncidentSummaryRow(
+    summary: IncidentSummaryUi,
+    incident: SecurityIncident,
+    onOpen: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val isCaptured = incident.photoStatus == "SUCCESS" || incident.videoStatus == "SUCCESS"
+
+    ForensicCard(
+        modifier = Modifier.fillMaxWidth(),
+        elevated = false
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            // Thumbnail placeholder
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(LockWitnessSurfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Error,
+                    contentDescription = null,
+                    tint = LockWitnessPrimary,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = summary.timestamp,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LockWitnessTextSecondary
                     )
+                    if (isCaptured) {
+                        StatusPill(text = "Captured")
+                    }
+                }
+                Text(
+                    text = "Failed unlock attempt",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "${summary.failedAttemptCount} attempt${if (summary.failedAttemptCount != "1") "s" else ""}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LockWitnessTextSecondary
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (summary.hasPhoto) {
+                        Icon(Icons.Outlined.CameraAlt, null, tint = LockWitnessPrimary, modifier = Modifier.size(16.dp))
+                    }
+                    if (summary.hasVideo) {
+                        Icon(Icons.Outlined.Videocam, null, tint = LockWitnessPrimary, modifier = Modifier.size(16.dp))
+                    }
+                    if (summary.hasLocation) {
+                        Icon(Icons.Outlined.Place, null, tint = LockWitnessPrimary, modifier = Modifier.size(16.dp))
+                    }
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(top = 8.dp), color = LockWitnessBorder)
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = onOpen,
+                        colors = ButtonDefaults.buttonColors(containerColor = LockWitnessPrimary),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                    ) {
+                        Text("View", color = Color.White, style = MaterialTheme.typography.labelMedium)
+                    }
+                    OutlinedButton(
+                        onClick = onDelete,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = LockWitnessTextSecondary),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, LockWitnessBorder),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                    ) {
+                        Text("Delete", style = MaterialTheme.typography.labelMedium)
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun IncidentDetailView(
+    detail: IncidentDetailUi,
+    incident: SecurityIncident,
+    onBack: () -> Unit,
+    onDelete: () -> Unit,
+    onExport: () -> Unit,
+    onSend: () -> Unit,
+    canSend: Boolean,
+    canExport: Boolean,
+    exportStatus: String
+) {
+    // Back row
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(Icons.Outlined.ArrowBack, contentDescription = "Back", tint = LockWitnessPrimary)
+        }
+        Text(
+            text = "Incident Detail",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        StatusPill(text = if (incident.photoStatus == "SUCCESS" || incident.videoStatus == "SUCCESS") "Captured" else "No Media")
+    }
+
+    // Detail card
+    ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            SectionEyebrow("Incident")
+            Spacer(modifier = Modifier.height(10.dp))
+            DetailRow("Timestamp", detail.timestamp)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = LockWitnessBorder)
+            DetailRow("Trigger", detail.triggerType)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = LockWitnessBorder)
+            DetailRow("Failed attempts", detail.failedAttemptCount)
+        }
+    }
+
+    if (detail.mediaFields.isNotEmpty()) {
+        ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                SectionEyebrow("Media")
+                Spacer(modifier = Modifier.height(10.dp))
+                detail.mediaFields.forEachIndexed { i, (label, value) ->
+                    DetailRow(label, value)
+                    if (i < detail.mediaFields.lastIndex) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = LockWitnessBorder)
+                    }
+                }
+            }
+        }
+    }
+
+    if (detail.locationFields.isNotEmpty()) {
+        ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                SectionEyebrow("Location")
+                Spacer(modifier = Modifier.height(10.dp))
+                detail.locationFields.forEachIndexed { i, (label, value) ->
+                    DetailRow(label, value)
+                    if (i < detail.locationFields.lastIndex) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = LockWitnessBorder)
+                    }
+                }
+            }
+        }
+    }
+
+    if (detail.hashFields.isNotEmpty()) {
+        ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                SectionEyebrow("Evidence Hashes")
+                Spacer(modifier = Modifier.height(10.dp))
+                detail.hashFields.forEachIndexed { i, (label, value) ->
+                    DetailRow(label, value)
+                    if (i < detail.hashFields.lastIndex) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = LockWitnessBorder)
+                    }
+                }
+            }
+        }
+    }
+
+    // Action buttons
+    ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = onExport,
+                enabled = canExport,
+                colors = ButtonDefaults.buttonColors(containerColor = LockWitnessPrimary),
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Outlined.FileDownload, null, modifier = Modifier.size(16.dp))
+                Text(" ${if (canExport) "Export" else "Export Pro"}", color = Color.White)
+            }
+            Button(
+                onClick = onSend,
+                enabled = canSend && canExport,
+                colors = ButtonDefaults.buttonColors(containerColor = LockWitnessPrimary),
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Outlined.Share, null, modifier = Modifier.size(16.dp))
+                Text(" Share", color = Color.White)
+            }
+            OutlinedButton(
+                onClick = onDelete,
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = LockWitnessTextSecondary),
+                border = androidx.compose.foundation.BorderStroke(1.dp, LockWitnessBorder),
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(Icons.Outlined.Delete, null, modifier = Modifier.size(16.dp))
+                Text(" Delete")
+            }
+        }
+    }
+
+    if (exportStatus.isNotEmpty()) {
+        Text(exportStatus, style = MaterialTheme.typography.bodySmall, color = LockWitnessTextSecondary)
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = LockWitnessTextSecondary,
+            fontWeight = FontWeight.Medium
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -225,16 +594,13 @@ internal fun HistoryLoadingState(contentPadding: PaddingValues) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircularProgressIndicator()
-        Text("Loading incidents")
+        CircularProgressIndicator(color = LockWitnessPrimary)
+        Text("Loading incidents", color = LockWitnessTextSecondary)
     }
 }
 
 @Composable
-internal fun HistoryErrorState(
-    contentPadding: PaddingValues,
-    message: String
-) {
+internal fun HistoryErrorState(contentPadding: PaddingValues, message: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -242,200 +608,9 @@ internal fun HistoryErrorState(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = "History unavailable",
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Text(message)
+        Text("History unavailable", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
+        Text(message, color = LockWitnessTextSecondary)
     }
 }
-
-@Composable
-private fun EmptyHistoryCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "No incidents recorded",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "Failed-unlock records will appear here after monitoring creates local incidents.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
-}
-
-@Composable
-private fun IncidentSummaryCard(
-    summary: IncidentSummaryUi,
-    onOpen: () -> Unit,
-    onDelete: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = summary.timestamp,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text("Trigger: ${summary.triggerType}")
-            Text("Failed attempts: ${summary.failedAttemptCount}")
-            StatusChips(summary)
-            IndicatorRow(summary)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onOpen) {
-                    Text("Details")
-                }
-                OutlinedButton(onClick = onDelete) {
-                    Text("Delete")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusChips(summary: IncidentSummaryUi) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text("Photo: ${summary.photoStatus}")
-        Text("Video: ${summary.videoStatus}")
-        Text("Location: ${summary.locationStatus}")
-        Text("Email: ${summary.emailStatus}")
-        Text("Share: ${summary.shareStatus}")
-    }
-}
-
-@Composable
-private fun IndicatorRow(summary: IncidentSummaryUi) {
-    Text(
-        text = "Media: photo ${summary.hasPhoto.yesNo()}, video ${summary.hasVideo.yesNo()}, location ${summary.hasLocation.yesNo()}",
-        style = MaterialTheme.typography.bodyMedium
-    )
-}
-
-@Composable
-private fun IncidentDetailCard(
-    detail: IncidentDetailUi,
-    onBack: () -> Unit,
-    onDelete: () -> Unit,
-    onExport: () -> Unit,
-    onSend: () -> Unit,
-    canSend: Boolean,
-    canExport: Boolean
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Incident detail",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(detail.timestamp)
-                }
-                OutlinedButton(onClick = onBack) {
-                    Text("Back")
-                }
-            }
-            DetailField("Trigger", detail.triggerType)
-            DetailField("Failed attempts", detail.failedAttemptCount)
-            DetailSection("Settings snapshot", detail.settingsSnapshot)
-            DetailSection("Device", detail.deviceMetadata)
-            DetailMediaSection(detail.mediaFields)
-            DetailSection("Location", detail.locationFields)
-            DetailSection("Hashes", detail.hashFields)
-            DetailSection("Module statuses", detail.statusFields)
-            DetailField("Notes", detail.notes)
-            Spacer(modifier = Modifier.padding(top = 4.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = onExport,
-                    enabled = canExport
-                ) {
-                    Text(if (canExport) "Export Incident" else "Export Pro")
-                }
-                Button(
-                    onClick = onSend,
-                    enabled = canSend && canExport
-                ) {
-                    Text("Send")
-                }
-                OutlinedButton(onClick = onDelete) {
-                    Text("Delete Incident")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DetailMediaSection(fields: List<Pair<String, String>>) {
-    if (fields.isEmpty()) {
-        DetailSection("Media", listOf("Stored files" to "No photo or video path recorded."))
-    } else {
-        DetailSection(
-            title = "Media",
-            fields = fields + ("Preview" to "Safe fallback: local file path/status shown; runtime media rendering requires device test.")
-        )
-    }
-}
-
-@Composable
-private fun DetailSection(
-    title: String,
-    fields: List<Pair<String, String>>
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium
-        )
-        if (fields.isEmpty()) {
-            Text("No data recorded.")
-        } else {
-            fields.forEach { (label, value) ->
-                DetailField(label, value)
-            }
-        }
-    }
-}
-
-@Composable
-private fun DetailField(
-    label: String,
-    value: String
-) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
-
-private fun Boolean.yesNo(): String =
-    if (this) "yes" else "no"
 
 private const val NO_SELECTION = -1L
