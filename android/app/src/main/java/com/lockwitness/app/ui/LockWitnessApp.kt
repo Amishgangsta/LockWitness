@@ -1,7 +1,6 @@
 package com.lockwitness.app.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -11,8 +10,6 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -27,12 +24,11 @@ import com.lockwitness.app.ui.screens.DiagnosticsScreen
 import com.lockwitness.app.ui.screens.HistoryScreen
 import com.lockwitness.app.ui.screens.SettingsScreen
 import com.lockwitness.app.ui.screens.UpgradeScreen
-import com.lockwitness.app.ui.theme.LockWitnessBackground
+import com.lockwitness.app.ui.theme.LWBackground
+import com.lockwitness.app.ui.theme.LWPanel
 import com.lockwitness.app.ui.theme.LockWitnessPrimary
-import com.lockwitness.app.ui.theme.LockWitnessSurfaceRaised
 import com.lockwitness.app.ui.theme.LockWitnessTextSecondary
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LockWitnessApp() {
     val navController = rememberNavController()
@@ -41,22 +37,11 @@ fun LockWitnessApp() {
     val currentRoute = currentBackStack?.destination?.route ?: LockWitnessDestination.Dashboard.route
 
     Scaffold(
-        containerColor = LockWitnessBackground,
+        containerColor = LWBackground,
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "Lock Witness") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = LockWitnessSurfaceRaised,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = LockWitnessPrimary,
-                    navigationIconContentColor = LockWitnessPrimary
-                )
-            )
-        },
         bottomBar = {
             NavigationBar(
-                containerColor = LockWitnessSurfaceRaised,
+                containerColor = LWPanel,
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 tonalElevation = NavigationBarDefaults.Elevation
             ) {

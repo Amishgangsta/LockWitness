@@ -22,19 +22,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lockwitness.app.ui.theme.LWChrome
+import com.lockwitness.app.ui.theme.LWPanel
 import com.lockwitness.app.ui.theme.LockWitnessBorder
-import com.lockwitness.app.ui.theme.LockWitnessPrimary
-import com.lockwitness.app.ui.theme.LockWitnessSurface
-import com.lockwitness.app.ui.theme.LockWitnessSurfaceRaised
 import com.lockwitness.app.ui.theme.LockWitnessTextSecondary
-
-// LockWitness Orange / Amber Forensic Variant
-// Version: 1.0.0
-// Build: LOCKWITNESS-UI-ORANGE-1
-// Created: 2026-05-20
-// Author: Randy D. Vickers / ChatGPT
-// Platform: Android Jetpack Compose
-// Hardened: Reusable UI-only components
 
 @Composable
 fun ForensicCard(
@@ -45,9 +36,7 @@ fun ForensicCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (elevated) LockWitnessSurfaceRaised else LockWitnessSurface
-        ),
+        colors = CardDefaults.cardColors(containerColor = LWPanel),
         border = BorderStroke(1.dp, LockWitnessBorder)
     ) {
         content()
@@ -58,13 +47,14 @@ fun ForensicCard(
 fun StatusPill(
     text: String,
     modifier: Modifier = Modifier,
-    dotColor: Color? = null
+    dotColor: Color? = null,
+    color: Color = LWChrome
 ) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(999.dp),
-        color = LockWitnessPrimary.copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, LockWitnessPrimary.copy(alpha = 0.75f))
+        color = color.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.45f))
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -82,7 +72,7 @@ fun StatusPill(
             Text(
                 text = text.uppercase(),
                 style = MaterialTheme.typography.labelMedium,
-                color = LockWitnessPrimary,
+                color = color,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -94,7 +84,7 @@ fun SectionEyebrow(text: String) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelMedium,
-        color = LockWitnessPrimary,
+        color = LWChrome,
         fontWeight = FontWeight.Bold,
         letterSpacing = 2.sp
     )

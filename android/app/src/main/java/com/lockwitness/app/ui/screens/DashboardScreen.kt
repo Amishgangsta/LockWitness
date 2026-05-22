@@ -17,18 +17,32 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.Canvas
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.Videocam
+import androidx.compose.material.icons.outlined.WorkspacePremium
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import com.lockwitness.app.R
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -62,7 +76,9 @@ import com.lockwitness.app.ui.components.ForensicCard
 import com.lockwitness.app.ui.components.SectionEyebrow
 import com.lockwitness.app.ui.components.StatusPill
 import com.lockwitness.app.ui.theme.LWAccentRed
+import com.lockwitness.app.ui.theme.LWBackground
 import com.lockwitness.app.ui.theme.LWChrome
+import com.lockwitness.app.ui.theme.LWPanel
 import com.lockwitness.app.ui.theme.LWSuccessGreen
 import com.lockwitness.app.ui.theme.LWTextPrimary
 import com.lockwitness.app.ui.theme.LWTextSecondary
@@ -141,20 +157,20 @@ internal fun DashboardContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(LockWitnessBackground, Color(0xFF0F0F0F), LockWitnessBackground)
-                )
-            )
+            .background(LWBackground)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        HeaderCard(monitoringEnabled = state.monitoringEnabled)
-        MonitoringStatusCard(enabled = state.monitoringEnabled)
+        AppHeader()
+        HeroCard(monitoringEnabled = state.monitoringEnabled)
         IncidentSummaryCard(state = state, isPro = monetizationState.isPro)
-        EvidenceIntegrityCard(hashingEnabled = state.hashingEnabled, exportState = state.exportState)
+        EvidenceIntegrityCard(
+            hashingEnabled = state.hashingEnabled,
+            exportState = state.exportState,
+            isPro = monetizationState.isPro
+        )
         RecentIncidentCard(
             timestamp = state.recentIncidentTimestamp,
             captured = state.recentIncidentCaptured
@@ -170,73 +186,126 @@ internal fun DashboardContent(
 }
 
 @Composable
-private fun HeaderCard(monitoringEnabled: Boolean) {
+private fun AppHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        androidx.compose.foundation.Image(
+            painter = painterResource(id = R.drawable.shield_logo),
+            contentDescription = "LockWitness Shield",
+            modifier = Modifier.size(36.dp)
+        )
+        Text(
+            text = "Lock Witness",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = LWTextPrimary,
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            imageVector = Icons.Outlined.NotificationsNone,
+            contentDescription = "Notifications",
+            tint = LWTextSecondary,
+            modifier = Modifier.size(24.dp)
+        )
+        Icon(
+            imageVector = Icons.Outlined.MoreVert,
+            contentDescription = "Menu",
+            tint = LWTextSecondary,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+private fun HeroCard(monitoringEnabled: Boolean) {
     ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Security,
-                    contentDescription = null,
-                    tint = LockWitnessPrimary,
-                    modifier = Modifier.padding(4.dp)
-                )
-                Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(LockWitnessBackground.copy(alpha = 0.6f), shape = androidx.compose.foundation.shape.CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Lock,
+                        contentDescription = null,
+                        tint = LockWitnessPrimary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     Text(
-                        text = "Lock Witness",
+                        text = "DIGITAL WITNESS",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         color = LWTextPrimary
                     )
                     Text(
                         text = "Owner-controlled failed-unlock evidence monitor",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = LWTextSecondary
                     )
                 }
             }
-            StatusPill(
-                text = if (monitoringEnabled) "Monitoring Active" else "Monitoring Paused",
-                dotColor = if (monitoringEnabled) LWSuccessGreen else null
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatusPill(
+                    text = if (monitoringEnabled) "Monitoring Active" else "Monitoring Paused",
+                    dotColor = if (monitoringEnabled) LWSuccessGreen else LWAccentRed,
+                    color = if (monitoringEnabled) LWSuccessGreen else LWChrome
+                )
+                EkgLine(
+                    modifier = Modifier.weight(1f).height(36.dp),
+                    color = if (monitoringEnabled) LWAccentRed else LWTextSecondary.copy(alpha = 0.3f)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun MonitoringStatusCard(enabled: Boolean) {
-    ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = enabled) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.VerifiedUser,
-                contentDescription = null,
-                tint = if (enabled) LWSuccessGreen else LWTextSecondary
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                SectionEyebrow("Monitoring")
-                Text(
-                    text = if (enabled) "Failed-unlock surveillance is armed" else "Monitoring is currently paused",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LWTextPrimary
-                )
-            }
-            StatusPill(
-                text = if (enabled) "Active" else "Paused",
-                dotColor = if (enabled) LWSuccessGreen else null
-            )
+private fun EkgLine(modifier: Modifier = Modifier, color: Color) {
+    Canvas(modifier = modifier) {
+        val w = size.width
+        val h = size.height
+        val mid = h / 2f
+        val path = Path().apply {
+            moveTo(0f, mid)
+            lineTo(w * 0.20f, mid)
+            lineTo(w * 0.27f, mid - h * 0.75f)
+            lineTo(w * 0.32f, mid + h * 0.60f)
+            lineTo(w * 0.37f, mid - h * 0.40f)
+            lineTo(w * 0.42f, mid)
+            lineTo(w * 0.55f, mid)
+            lineTo(w * 0.60f, mid - h * 0.50f)
+            lineTo(w * 0.63f, mid + h * 0.40f)
+            lineTo(w * 0.67f, mid)
+            lineTo(w, mid)
         }
+        drawPath(
+            path = path,
+            color = color,
+            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        )
     }
 }
 
@@ -247,20 +316,13 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            SectionEyebrow("Evidence Summary")
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    text = state.incidentCount.toString(),
-                    style = MaterialTheme.typography.displaySmall,
-                    color = LockWitnessPrimary,
-                    fontWeight = FontWeight.Bold
-                )
-                Column(modifier = Modifier.weight(1f)) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    SectionEyebrow("Evidence Summary")
                     Text(
                         text = "Recorded Incidents",
                         style = MaterialTheme.typography.titleMedium,
@@ -274,9 +336,10 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                     )
                 }
                 Icon(
-                    imageVector = Icons.Outlined.Shield,
+                    imageVector = Icons.Outlined.Fingerprint,
                     contentDescription = null,
-                    tint = LockWitnessPrimary.copy(alpha = 0.3f)
+                    tint = LWTextSecondary.copy(alpha = 0.5f),
+                    modifier = Modifier.size(48.dp)
                 )
             }
 
@@ -297,9 +360,7 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                     value = if (isPro) state.videoCount.toString() else "Pro",
                     subLabel = if (isPro) {
                         if (state.videoCount > 0) "Captured" else "None Yet"
-                    } else {
-                        "Upgrade for Video Evidence"
-                    },
+                    } else "Pro",
                     icon = Icons.Outlined.Videocam,
                     status = if (!isPro) EvidenceTileStatus.LOCKED
                     else if (state.videoCount > 0) EvidenceTileStatus.ACTIVE
@@ -310,10 +371,8 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                     label = "Location",
                     value = if (isPro) state.locationCount.toString() else "Pro",
                     subLabel = if (isPro) {
-                        if (state.locationCount > 0) "Snapshot" else "None Yet"
-                    } else {
-                        "Upgrade for Location Snapshots"
-                    },
+                        if (state.locationCount > 0) "Captured" else "None Yet"
+                    } else "Pro",
                     icon = Icons.Outlined.Place,
                     status = if (!isPro) EvidenceTileStatus.LOCKED
                     else if (state.locationCount > 0) EvidenceTileStatus.ACTIVE
@@ -342,50 +401,59 @@ private fun EvidenceMiniCard(
     status: EvidenceTileStatus,
     modifier: Modifier = Modifier
 ) {
-    val dotColor = when (status) {
-        EvidenceTileStatus.ACTIVE -> LWSuccessGreen
-        EvidenceTileStatus.LOCKED -> LockWitnessPrimary
-        EvidenceTileStatus.EMPTY -> LWChrome.copy(alpha = 0.5f)
-    }
-    val subLabelColor = if (status == EvidenceTileStatus.LOCKED) LWTextSecondary else LockWitnessPrimary
+    val iconTint = if (status == EvidenceTileStatus.LOCKED) LWChrome.copy(alpha = 0.4f) else LWTextPrimary
 
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = LockWitnessSurfaceRaised),
+        colors = CardDefaults.cardColors(containerColor = LWPanel),
         border = BorderStroke(1.dp, LockWitnessBorder)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Row(
+        Box(modifier = Modifier.padding(12.dp)) {
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = LockWitnessPrimary)
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(dotColor)
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(32.dp)
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = LWTextSecondary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = subLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (status == EvidenceTileStatus.LOCKED) LWTextSecondary else LockWitnessPrimary,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                color = LockWitnessPrimaryBright,
-                fontWeight = FontWeight.Bold
-            )
-            Text(text = subLabel, style = MaterialTheme.typography.bodySmall, color = subLabelColor)
-            Text(text = label, style = MaterialTheme.typography.labelSmall, color = LWTextSecondary)
+            if (status == EvidenceTileStatus.ACTIVE) {
+                Icon(
+                    imageVector = Icons.Outlined.CheckCircle,
+                    contentDescription = null,
+                    tint = LWAccentRed,
+                    modifier = Modifier
+                        .size(16.dp)
+                        .align(Alignment.TopEnd)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun EvidenceIntegrityCard(hashingEnabled: Boolean, exportState: ExportState) {
+private fun EvidenceIntegrityCard(hashingEnabled: Boolean, exportState: ExportState, isPro: Boolean) {
+    val shieldTint = if (isPro) LWSuccessGreen else LWChrome
+    val exportTint = if (exportState == ExportState.EXPORTING) LWAccentRed else shieldTint
+
     ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -395,6 +463,7 @@ private fun EvidenceIntegrityCard(hashingEnabled: Boolean, exportState: ExportSt
             Spacer(modifier = Modifier.height(12.dp))
             IntegrityRow(
                 icon = Icons.Outlined.Shield,
+                iconTint = shieldTint,
                 label = "SHA-256 Hashing",
                 trailingText = if (hashingEnabled) "Enabled" else "Enable",
                 trailingColor = if (hashingEnabled) LWSuccessGreen else LWAccentRed
@@ -402,6 +471,7 @@ private fun EvidenceIntegrityCard(hashingEnabled: Boolean, exportState: ExportSt
             HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = LockWitnessBorder)
             IntegrityRow(
                 icon = Icons.Outlined.Lock,
+                iconTint = LWSuccessGreen,
                 label = "Local-Only Storage",
                 sublabel = "All evidence stored on this device",
                 trailingText = "Secure",
@@ -410,6 +480,7 @@ private fun EvidenceIntegrityCard(hashingEnabled: Boolean, exportState: ExportSt
             HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = LockWitnessBorder)
             IntegrityRow(
                 icon = Icons.Outlined.Download,
+                iconTint = exportTint,
                 label = "Manual Export",
                 sublabel = when (exportState) {
                     ExportState.IDLE -> "Export evidence when needed"
@@ -430,6 +501,7 @@ private fun EvidenceIntegrityCard(hashingEnabled: Boolean, exportState: ExportSt
 @Composable
 private fun IntegrityRow(
     icon: ImageVector,
+    iconTint: Color = LWTextSecondary,
     label: String,
     sublabel: String? = null,
     trailingText: String? = null,
@@ -440,7 +512,7 @@ private fun IntegrityRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = LWTextSecondary)
+        Icon(imageVector = icon, contentDescription = null, tint = iconTint)
         Column(modifier = Modifier.weight(1f)) {
             Text(text = label, style = MaterialTheme.typography.bodyMedium, color = LWTextPrimary)
             if (sublabel != null) {
@@ -455,6 +527,12 @@ private fun IntegrityRow(
                 fontWeight = FontWeight.SemiBold
             )
         }
+        Icon(
+            imageVector = Icons.Outlined.ChevronRight,
+            contentDescription = null,
+            tint = LWTextSecondary,
+            modifier = Modifier.size(18.dp)
+        )
     }
 }
 
@@ -511,18 +589,29 @@ private fun RecentIncidentCard(timestamp: Long?, captured: Boolean) {
 @Composable
 private fun UpgradePromptCard(onNavigateToUpgrade: () -> Unit) {
     ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            SectionEyebrow("Unlock Pro Evidence Tools")
-            Text(
-                text = "Unlock full forensic history, video evidence, GPS snapshots and advanced protections.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = LWTextSecondary
+            Icon(
+                imageVector = Icons.Outlined.WorkspacePremium,
+                contentDescription = null,
+                tint = LWAccentRed,
+                modifier = Modifier.size(40.dp)
             )
-            Button(onClick = onNavigateToUpgrade, modifier = Modifier.fillMaxWidth()) {
-                Text("Upgrade to Pro")
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                SectionEyebrow("Unlock Pro Evidence Tools")
+                Text(
+                    text = "Unlock full forensic history, video evidence, GPS snapshots and advanced protections.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LWTextSecondary
+                )
+            }
+            Button(onClick = onNavigateToUpgrade) {
+                Text("UPGRADE", fontWeight = FontWeight.Bold)
             }
         }
     }

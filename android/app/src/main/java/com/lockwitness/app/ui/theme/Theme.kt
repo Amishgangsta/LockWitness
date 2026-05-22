@@ -24,10 +24,10 @@ private val DarkForensicOrangeScheme: ColorScheme = darkColorScheme(
     secondaryContainer = LockWitnessSurfaceVariant,
     onSecondaryContainer = LockWitnessTextPrimary,
 
-    background = LockWitnessBackground,
+    background = LWBackground,
     onBackground = LockWitnessTextPrimary,
 
-    surface = LockWitnessSurface,
+    surface = LWPanel,
     onSurface = LockWitnessTextPrimary,
 
     surfaceVariant = LockWitnessSurfaceVariant,
