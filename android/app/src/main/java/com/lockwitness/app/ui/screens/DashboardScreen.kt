@@ -23,7 +23,6 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.MoreVert
@@ -88,9 +87,6 @@ import com.lockwitness.app.ui.theme.LockWitnessBorder
 import com.lockwitness.app.ui.theme.LockWitnessPrimary
 import com.lockwitness.app.ui.theme.LockWitnessPrimaryBright
 import com.lockwitness.app.ui.theme.LockWitnessSurfaceRaised
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 enum class EvidenceTileStatus { ACTIVE, LOCKED, EMPTY }
 enum class ExportState { IDLE, EXPORTING, DONE }
@@ -171,10 +167,6 @@ internal fun DashboardContent(
             hashingEnabled = state.hashingEnabled,
             exportState = state.exportState,
             isPro = monetizationState.isPro
-        )
-        RecentIncidentCard(
-            timestamp = state.recentIncidentTimestamp,
-            captured = state.recentIncidentCaptured
         )
         if (monetizationState.isPro) {
             ProToolsCard(onNavigateToSettings = onNavigateToSettings)
@@ -357,6 +349,7 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                     subLabel = "Enabled",
                     icon = Icons.Outlined.CameraAlt,
                     status = EvidenceTileStatus.ACTIVE,
+                    incidentCount = state.photoCount,
                     modifier = Modifier.weight(1f)
                 )
                 EvidenceMiniCard(
@@ -364,6 +357,7 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                     subLabel = if (isPro) "Enabled" else "Available in Pro",
                     icon = Icons.Outlined.Videocam,
                     status = if (isPro) EvidenceTileStatus.ACTIVE else EvidenceTileStatus.LOCKED,
+                    incidentCount = if (isPro) state.videoCount else 0,
                     modifier = Modifier.weight(1f)
                 )
                 EvidenceMiniCard(
@@ -371,6 +365,7 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                     subLabel = if (isPro) "Enabled" else "Available in Pro",
                     icon = Icons.Outlined.Place,
                     status = if (isPro) EvidenceTileStatus.ACTIVE else EvidenceTileStatus.LOCKED,
+                    incidentCount = if (isPro) state.locationCount else 0,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -392,6 +387,7 @@ private fun EvidenceMiniCard(
     subLabel: String,
     icon: ImageVector,
     status: EvidenceTileStatus,
+    incidentCount: Int = 0,
     modifier: Modifier = Modifier
 ) {
     val iconTint = if (status == EvidenceTileStatus.LOCKED) LWChrome.copy(alpha = 0.4f) else LWTextPrimary
@@ -407,34 +403,57 @@ private fun EvidenceMiniCard(
         colors = CardDefaults.cardColors(containerColor = LWPanel),
         border = BorderStroke(1.dp, LockWitnessBorder)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(28.dp)
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = LWTextSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = subLabel,
-                style = MaterialTheme.typography.labelSmall,
-                color = subLabelColor,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(28.dp)
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = LWTextSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = subLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = subLabelColor,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            if (incidentCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .size(18.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(top = 4.dp, end = 4.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(LWAccentRed)
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.CheckCircle,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -526,56 +545,6 @@ private fun IntegrityRow(
     }
 }
 
-@Composable
-private fun RecentIncidentCard(timestamp: Long?, captured: Boolean) {
-    val hasIncident = timestamp != null
-    val dateStr = remember(timestamp) {
-        timestamp?.let {
-            SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault()).format(Date(it))
-        }
-    }
-
-    ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = if (hasIncident) Icons.Outlined.Error else Icons.Outlined.CheckCircle,
-                contentDescription = null,
-                tint = if (hasIncident) LWAccentRed else LWSuccessGreen,
-                modifier = Modifier.size(28.dp)
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = if (hasIncident) "RECENT INCIDENT" else "NO RECENT INCIDENT",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = LWTextPrimary
-                )
-                if (hasIncident && dateStr != null) {
-                    Text(
-                        text = dateStr,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = LWTextSecondary
-                    )
-                } else {
-                    Text(
-                        text = "No failed unlock attempts recorded",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = LWTextSecondary
-                    )
-                }
-            }
-            if (hasIncident && captured) {
-                StatusPill(text = "Captured")
-            }
-        }
-    }
-}
 
 @Composable
 private fun UpgradePromptCard(onNavigateToUpgrade: () -> Unit) {
@@ -583,22 +552,24 @@ private fun UpgradePromptCard(onNavigateToUpgrade: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Outlined.WorkspacePremium,
                 contentDescription = null,
                 tint = LWAccentRed,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(28.dp)
             )
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                SectionEyebrow("Unlock Pro Evidence Tools")
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                SectionEyebrow("Unlock Pro")
                 Text(
-                    text = "Unlock full forensic history, video evidence, GPS snapshots and advanced protections.",
+                    text = "Full forensic history, video evidence, GPS snapshots and advanced protections.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = LWTextSecondary
+                    color = LWTextSecondary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Button(onClick = onNavigateToUpgrade) {
