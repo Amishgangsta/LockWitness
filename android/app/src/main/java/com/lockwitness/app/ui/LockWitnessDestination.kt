@@ -16,7 +16,7 @@ enum class LockWitnessDestination(
     Dashboard("dashboard", "Home", Icons.Outlined.Home),
     Settings("settings", "Settings", Icons.Outlined.Settings),
     History("history", "History", Icons.Outlined.History),
-    Diagnostics("diagnostics", "Diagnostics", Icons.Outlined.MonitorHeart),
+    Diagnostics("diagnostics", "Diagnostic", Icons.Outlined.MonitorHeart),
     About("about", "About", Icons.Outlined.Info)
 }
 

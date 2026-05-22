@@ -1,7 +1,10 @@
 package com.lockwitness.app.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
@@ -41,7 +44,12 @@ fun LockWitnessApp() {
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
         bottomBar = {
             NavigationBar(
-                containerColor = LWPanel,
+                modifier = Modifier.background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color(0xFF080C14), Color(0xFF071830))
+                    )
+                ),
+                containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 tonalElevation = NavigationBarDefaults.Elevation
             ) {

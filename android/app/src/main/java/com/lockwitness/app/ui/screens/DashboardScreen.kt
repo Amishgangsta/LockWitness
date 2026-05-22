@@ -49,6 +49,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -160,8 +161,8 @@ internal fun DashboardContent(
             .background(LWBackground)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         AppHeader()
         HeroCard(monitoringEnabled = state.monitoringEnabled)
@@ -180,7 +181,6 @@ internal fun DashboardContent(
         } else {
             UpgradePromptCard(onNavigateToUpgrade = onNavigateToUpgrade)
         }
-        Spacer(modifier = Modifier.height(4.dp))
         BannerAdPlaceholder(state = monetizationState)
     }
 }
@@ -190,14 +190,14 @@ private fun AppHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         androidx.compose.foundation.Image(
-            painter = painterResource(id = R.drawable.shield_logo),
+            painter = painterResource(id = R.drawable.shield_lock),
             contentDescription = "LockWitness Shield",
-            modifier = Modifier.size(36.dp)
+            modifier = Modifier.size(38.dp)
         )
         Text(
             text = "Lock Witness",
@@ -223,114 +223,124 @@ private fun AppHeader() {
 
 @Composable
 private fun HeroCard(monitoringEnabled: Boolean) {
+    val monitoringColor = if (monitoringEnabled) LWSuccessGreen else LWChrome
+    val dotColor = if (monitoringEnabled) LWSuccessGreen else LWAccentRed
+    val monitoringText = if (monitoringEnabled) "Monitoring Active" else "Monitoring Paused"
+
     ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
         Column(
-            modifier = Modifier.padding(start = 0.dp, top = 14.dp, end = 14.dp, bottom = 14.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(999.dp),
+                color = monitoringColor.copy(alpha = 0.08f),
+                border = BorderStroke(1.dp, monitoringColor.copy(alpha = 0.45f))
             ) {
-                androidx.compose.foundation.Image(
-                    painter = painterResource(id = R.drawable.padlock),
-                    contentDescription = null,
-                    modifier = Modifier.size(120.dp)
-                )
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 9.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "DIGITAL WITNESS",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Normal,
-                        color = LWTextPrimary
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(dotColor)
                     )
+                    Spacer(modifier = Modifier.padding(start = 8.dp))
                     Text(
-                        text = "Owner-controlled failed-unlock evidence monitor",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = LWTextSecondary
+                        text = monitoringText.uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = monitoringColor,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StatusPill(
-                    text = if (monitoringEnabled) "Monitoring Active" else "Monitoring Paused",
-                    dotColor = if (monitoringEnabled) LWSuccessGreen else LWAccentRed,
-                    color = if (monitoringEnabled) LWSuccessGreen else LWChrome
-                )
-                EkgLine(
-                    modifier = Modifier.weight(1f).height(40.dp),
-                    color = if (monitoringEnabled) LWAccentRed else LWTextSecondary.copy(alpha = 0.3f)
-                )
-            }
+            EkgLine(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp),
+                active = monitoringEnabled
+            )
         }
     }
 }
 
 @Composable
-private fun EkgLine(modifier: Modifier = Modifier, color: Color) {
+private fun EkgLine(modifier: Modifier = Modifier, active: Boolean) {
     val tracer = Color(0xFFFF5555)
-    val active = color.alpha > 0.1f
     Canvas(modifier = modifier) {
         val w = size.width
         val h = size.height
         val mid = h / 2f
         val stroke = Stroke(width = 1.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
 
-        fun seg(vararg pts: Pair<Float, Float>) = Path().apply {
-            moveTo(pts[0].first, pts[0].second)
-            pts.drop(1).forEach { lineTo(it.first, it.second) }
-        }
         fun glowSeg(path: Path, alpha: Float) {
             drawPath(path, tracer.copy(alpha = alpha * 0.08f), style = Stroke(16.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
             drawPath(path, tracer.copy(alpha = alpha * 0.20f), style = Stroke(7.dp.toPx(),  cap = StrokeCap.Round, join = StrokeJoin.Round))
             drawPath(path, tracer.copy(alpha = alpha * 0.45f), style = Stroke(3.dp.toPx(),  cap = StrokeCap.Round, join = StrokeJoin.Round))
-            drawPath(path, tracer.copy(alpha = alpha),         style = stroke)
+            drawPath(path, tracer.copy(alpha = alpha), style = stroke)
         }
 
-        // dim baseline — the "old" trace
-        val baseline = seg(
-            0f to mid, w * 0.10f to mid,
-            w * 0.18f to mid, w * 0.22f to mid,
-            w * 0.35f to mid, w * 0.46f to mid,
-            w * 0.54f to mid, w * 0.58f to mid,
-            w * 0.71f to mid, w to mid
-        )
         val baseAlpha = if (active) 0.18f else 0.08f
+
+        // dim baseline segments between beats
+        val baseline = Path().apply {
+            moveTo(0f, mid); lineTo(w * 0.05f, mid)
+            moveTo(w * 0.30f, mid); lineTo(w * 0.36f, mid)
+            moveTo(w * 0.64f, mid); lineTo(w * 0.70f, mid)
+            moveTo(w * 0.95f, mid); lineTo(w, mid)
+        }
         drawPath(baseline, tracer.copy(alpha = baseAlpha), style = stroke)
 
-        // small pre-bump 1
-        glowSeg(seg(w * 0.10f to mid, w * 0.14f to mid - h * 0.20f, w * 0.18f to mid),
-            if (active) 0.35f else 0.10f)
+        // Beat 1 — P-QRS-T (oldest, dimmest) — 5% to 30%
+        val beat1 = Path().apply {
+            moveTo(w * 0.05f, mid)
+            lineTo(w * 0.08f, mid - h * 0.15f)  // P wave up
+            lineTo(w * 0.12f, mid)               // P wave down
+            lineTo(w * 0.14f, mid + h * 0.10f)  // Q dip
+            lineTo(w * 0.17f, mid - h * 0.88f)  // R spike up
+            lineTo(w * 0.20f, mid + h * 0.38f)  // S dip
+            lineTo(w * 0.23f, mid - h * 0.08f)  // S recovery
+            lineTo(w * 0.25f, mid)
+            lineTo(w * 0.27f, mid - h * 0.22f)  // T wave
+            lineTo(w * 0.30f, mid)
+        }
+        glowSeg(beat1, if (active) 0.40f else 0.10f)
 
-        // beat 1 spike (medium brightness — older beat)
-        glowSeg(seg(
-            w * 0.22f to mid,
-            w * 0.25f to mid - h * 0.85f,
-            w * 0.28f to mid + h * 0.55f,
-            w * 0.31f to mid - h * 0.25f,
-            w * 0.35f to mid
-        ), if (active) 0.55f else 0.12f)
+        // Beat 2 — mid brightness — 36% to 64%
+        val beat2 = Path().apply {
+            moveTo(w * 0.36f, mid)
+            lineTo(w * 0.39f, mid - h * 0.15f)
+            lineTo(w * 0.43f, mid)
+            lineTo(w * 0.45f, mid + h * 0.10f)
+            lineTo(w * 0.48f, mid - h * 0.88f)
+            lineTo(w * 0.51f, mid + h * 0.38f)
+            lineTo(w * 0.54f, mid - h * 0.08f)
+            lineTo(w * 0.56f, mid)
+            lineTo(w * 0.58f, mid - h * 0.22f)
+            lineTo(w * 0.64f, mid)
+        }
+        glowSeg(beat2, if (active) 0.65f else 0.12f)
 
-        // small pre-bump 2
-        glowSeg(seg(w * 0.46f to mid, w * 0.50f to mid - h * 0.20f, w * 0.54f to mid),
-            if (active) 0.45f else 0.12f)
-
-        // beat 2 spike (brightest — current beat, most recent)
-        glowSeg(seg(
-            w * 0.58f to mid,
-            w * 0.61f to mid - h * 0.85f,
-            w * 0.64f to mid + h * 0.55f,
-            w * 0.67f to mid - h * 0.25f,
-            w * 0.71f to mid
-        ), if (active) 0.95f else 0.15f)
+        // Beat 3 — brightest (most recent) — 70% to 95%
+        val beat3 = Path().apply {
+            moveTo(w * 0.70f, mid)
+            lineTo(w * 0.73f, mid - h * 0.15f)
+            lineTo(w * 0.77f, mid)
+            lineTo(w * 0.79f, mid + h * 0.10f)
+            lineTo(w * 0.82f, mid - h * 0.88f)
+            lineTo(w * 0.85f, mid + h * 0.38f)
+            lineTo(w * 0.88f, mid - h * 0.08f)
+            lineTo(w * 0.90f, mid)
+            lineTo(w * 0.92f, mid - h * 0.22f)
+            lineTo(w * 0.95f, mid)
+        }
+        glowSeg(beat3, if (active) 0.95f else 0.15f)
     }
 }
 
@@ -338,8 +348,8 @@ private fun EkgLine(modifier: Modifier = Modifier, color: Color) {
 private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
     ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -354,11 +364,6 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                         fontWeight = FontWeight.SemiBold,
                         color = LWTextPrimary
                     )
-                    Text(
-                        text = "Total failed unlock attempts",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = LWTextSecondary
-                    )
                 }
                 androidx.compose.foundation.Image(
                     painter = painterResource(id = R.drawable.fingerprint_shield),
@@ -372,35 +377,24 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 EvidenceMiniCard(
-                    label = "Photo Evidence",
-                    value = state.photoCount.toString(),
-                    subLabel = if (state.photoCount > 0) "Captured" else "None Yet",
+                    label = "Photo",
+                    subLabel = "Enabled",
                     icon = Icons.Outlined.CameraAlt,
-                    status = if (state.photoCount > 0) EvidenceTileStatus.ACTIVE else EvidenceTileStatus.EMPTY,
+                    status = EvidenceTileStatus.ACTIVE,
                     modifier = Modifier.weight(1f)
                 )
                 EvidenceMiniCard(
-                    label = "Video Evidence",
-                    value = if (isPro) state.videoCount.toString() else "Pro",
-                    subLabel = if (isPro) {
-                        if (state.videoCount > 0) "Captured" else "None Yet"
-                    } else "Pro",
+                    label = "Video",
+                    subLabel = if (isPro) "Enabled" else "Available in Pro",
                     icon = Icons.Outlined.Videocam,
-                    status = if (!isPro) EvidenceTileStatus.LOCKED
-                    else if (state.videoCount > 0) EvidenceTileStatus.ACTIVE
-                    else EvidenceTileStatus.EMPTY,
+                    status = if (isPro) EvidenceTileStatus.ACTIVE else EvidenceTileStatus.LOCKED,
                     modifier = Modifier.weight(1f)
                 )
                 EvidenceMiniCard(
                     label = "Location",
-                    value = if (isPro) state.locationCount.toString() else "Pro",
-                    subLabel = if (isPro) {
-                        if (state.locationCount > 0) "Captured" else "None Yet"
-                    } else "Pro",
+                    subLabel = if (isPro) "Enabled" else "Available in Pro",
                     icon = Icons.Outlined.Place,
-                    status = if (!isPro) EvidenceTileStatus.LOCKED
-                    else if (state.locationCount > 0) EvidenceTileStatus.ACTIVE
-                    else EvidenceTileStatus.EMPTY,
+                    status = if (isPro) EvidenceTileStatus.ACTIVE else EvidenceTileStatus.LOCKED,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -419,13 +413,17 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
 @Composable
 private fun EvidenceMiniCard(
     label: String,
-    value: String,
     subLabel: String,
     icon: ImageVector,
     status: EvidenceTileStatus,
     modifier: Modifier = Modifier
 ) {
     val iconTint = if (status == EvidenceTileStatus.LOCKED) LWChrome.copy(alpha = 0.4f) else LWTextPrimary
+    val subLabelColor = when (status) {
+        EvidenceTileStatus.ACTIVE -> LWSuccessGreen
+        EvidenceTileStatus.LOCKED -> LWTextSecondary
+        EvidenceTileStatus.EMPTY -> LWTextSecondary
+    }
 
     Card(
         modifier = modifier,
@@ -433,42 +431,34 @@ private fun EvidenceMiniCard(
         colors = CardDefaults.cardColors(containerColor = LWPanel),
         border = BorderStroke(1.dp, LockWitnessBorder)
     ) {
-        Box(modifier = Modifier.padding(12.dp)) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(32.dp)
-                )
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = LWTextSecondary,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = subLabel,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (status == EvidenceTileStatus.LOCKED) LWTextSecondary else LockWitnessPrimary,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-            if (status == EvidenceTileStatus.ACTIVE) {
-                Icon(
-                    imageVector = Icons.Outlined.CheckCircle,
-                    contentDescription = null,
-                    tint = LWAccentRed,
-                    modifier = Modifier
-                        .size(16.dp)
-                        .align(Alignment.TopEnd)
-                )
-            }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(28.dp)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = LWTextSecondary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = subLabel,
+                style = MaterialTheme.typography.labelSmall,
+                color = subLabelColor,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -480,11 +470,11 @@ private fun EvidenceIntegrityCard(hashingEnabled: Boolean, exportState: ExportSt
 
     ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             SectionEyebrow("Evidence Integrity")
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             IntegrityRow(
                 icon = Icons.Outlined.Shield,
                 iconTint = shieldTint,
@@ -492,7 +482,7 @@ private fun EvidenceIntegrityCard(hashingEnabled: Boolean, exportState: ExportSt
                 trailingText = if (hashingEnabled) "Enabled" else "Enable",
                 trailingColor = if (hashingEnabled) LWSuccessGreen else LWAccentRed
             )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = LockWitnessBorder)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 7.dp), color = LockWitnessBorder)
             IntegrityRow(
                 icon = Icons.Outlined.Lock,
                 iconTint = LWSuccessGreen,
@@ -501,7 +491,7 @@ private fun EvidenceIntegrityCard(hashingEnabled: Boolean, exportState: ExportSt
                 trailingText = "Secure",
                 trailingColor = LWSuccessGreen
             )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = LockWitnessBorder)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 7.dp), color = LockWitnessBorder)
             IntegrityRow(
                 icon = Icons.Outlined.Download,
                 iconTint = exportTint,
@@ -573,32 +563,33 @@ private fun RecentIncidentCard(timestamp: Long?, captured: Boolean) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = if (hasIncident) Icons.Outlined.Error else Icons.Outlined.CheckCircle,
                 contentDescription = null,
-                tint = if (hasIncident) LWAccentRed else LWSuccessGreen
+                tint = if (hasIncident) LWAccentRed else LWSuccessGreen,
+                modifier = Modifier.size(28.dp)
             )
             Column(modifier = Modifier.weight(1f)) {
-                SectionEyebrow(if (hasIncident) "Recent Incident" else "No Recent Incident")
+                Text(
+                    text = if (hasIncident) "RECENT INCIDENT" else "NO RECENT INCIDENT",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = LWTextPrimary
+                )
                 if (hasIncident && dateStr != null) {
                     Text(
                         text = dateStr,
                         style = MaterialTheme.typography.bodySmall,
                         color = LWTextSecondary
                     )
-                    Text(
-                        text = "Failed unlock attempt detected",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = LWTextPrimary
-                    )
                 } else {
                     Text(
                         text = "No failed unlock attempts recorded",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = LWTextSecondary
                     )
                 }
@@ -616,8 +607,8 @@ private fun UpgradePromptCard(onNavigateToUpgrade: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
