@@ -223,47 +223,23 @@ private fun AppHeader() {
 
 @Composable
 private fun HeroCard(monitoringEnabled: Boolean) {
-    val monitoringColor = if (monitoringEnabled) LWSuccessGreen else LWChrome
-    val dotColor = if (monitoringEnabled) LWSuccessGreen else LWAccentRed
-    val monitoringText = if (monitoringEnabled) "Monitoring Active" else "Monitoring Paused"
-
     ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(999.dp),
-                color = monitoringColor.copy(alpha = 0.08f),
-                border = BorderStroke(1.dp, monitoringColor.copy(alpha = 0.45f))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 9.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(dotColor)
-                    )
-                    Spacer(modifier = Modifier.padding(start = 8.dp))
-                    Text(
-                        text = monitoringText.uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = monitoringColor,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
+            StatusPill(
+                text = if (monitoringEnabled) "Monitoring Active" else "Monitoring Paused",
+                dotColor = if (monitoringEnabled) LWSuccessGreen else LWAccentRed,
+                color = if (monitoringEnabled) LWSuccessGreen else LWChrome
+            )
             EkgLine(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(32.dp),
+                    .weight(1f)
+                    .height(36.dp),
                 active = monitoringEnabled
             )
         }
