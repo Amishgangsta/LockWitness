@@ -78,7 +78,9 @@ import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoCaptureResult
 import com.lockwitness.app.ui.components.ForensicCard
 import com.lockwitness.app.ui.components.SectionEyebrow
-import com.lockwitness.app.ui.theme.LockWitnessBackground
+import com.lockwitness.app.ui.theme.LWBackground
+import com.lockwitness.app.ui.theme.LWChrome
+import com.lockwitness.app.ui.theme.LWSuccessGreen
 import com.lockwitness.app.ui.theme.LockWitnessBorder
 import com.lockwitness.app.ui.theme.LockWitnessPrimary
 import com.lockwitness.app.ui.theme.LockWitnessPrimaryDark
@@ -146,15 +148,11 @@ fun SettingsScreen(contentPadding: PaddingValues) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(LockWitnessBackground, Color(0xFF0F0F0F), LockWitnessBackground)
-                )
-            )
+            .background(LWBackground)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Device Admin status banner
         if (!isDeviceAdminActive) {
@@ -493,7 +491,7 @@ private fun SettingsToggleRow(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (enabled) LockWitnessPrimary else LockWitnessTextSecondary,
+            tint = if (enabled) LWChrome else LockWitnessTextSecondary,
             modifier = Modifier.size(22.dp)
         )
         Column(modifier = Modifier.weight(1f)) {
@@ -604,13 +602,13 @@ private fun SettingsStatusRow(
         Icon(
             imageVector = if (statusOk) Icons.Outlined.CheckCircle else Icons.Outlined.Warning,
             contentDescription = null,
-            tint = if (statusOk) LockWitnessPrimary else LockWitnessTextSecondary,
+            tint = if (statusOk) LWSuccessGreen else LockWitnessPrimary,
             modifier = Modifier.size(16.dp)
         )
         Text(
             text = statusText,
             style = MaterialTheme.typography.labelMedium,
-            color = if (statusOk) LockWitnessPrimary else LockWitnessTextSecondary
+            color = if (statusOk) LWSuccessGreen else LockWitnessPrimary
         )
     }
 }

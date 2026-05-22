@@ -74,7 +74,7 @@ import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoCaptureResult
 import com.lockwitness.app.ui.components.ForensicCard
 import com.lockwitness.app.ui.components.SectionEyebrow
-import com.lockwitness.app.ui.theme.LockWitnessBackground
+import com.lockwitness.app.ui.theme.LWBackground
 import com.lockwitness.app.ui.theme.LockWitnessBorder
 import com.lockwitness.app.ui.theme.LockWitnessPrimary
 import com.lockwitness.app.ui.theme.LockWitnessSuccess
@@ -198,11 +198,7 @@ internal fun DiagnosticsContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(LockWitnessBackground, Color(0xFF0F0F0F), LockWitnessBackground)
-                )
-            )
+            .background(LWBackground)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 12.dp),
