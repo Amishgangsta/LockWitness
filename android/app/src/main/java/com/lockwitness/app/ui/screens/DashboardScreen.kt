@@ -160,8 +160,8 @@ internal fun DashboardContent(
             .background(LWBackground)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         AppHeader()
         HeroCard(monitoringEnabled = state.monitoringEnabled)
@@ -225,27 +225,19 @@ private fun AppHeader() {
 private fun HeroCard(monitoringEnabled: Boolean) {
     ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(start = 0.dp, top = 14.dp, end = 14.dp, bottom = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .background(LockWitnessBackground.copy(alpha = 0.6f), shape = androidx.compose.foundation.shape.CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Lock,
-                        contentDescription = null,
-                        tint = LockWitnessPrimary,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
+                androidx.compose.foundation.Image(
+                    painter = painterResource(id = R.drawable.padlock),
+                    contentDescription = null,
+                    modifier = Modifier.size(120.dp)
+                )
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -253,7 +245,7 @@ private fun HeroCard(monitoringEnabled: Boolean) {
                     Text(
                         text = "DIGITAL WITNESS",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.Normal,
                         color = LWTextPrimary
                     )
                     Text(
@@ -274,7 +266,7 @@ private fun HeroCard(monitoringEnabled: Boolean) {
                     color = if (monitoringEnabled) LWSuccessGreen else LWChrome
                 )
                 EkgLine(
-                    modifier = Modifier.weight(1f).height(36.dp),
+                    modifier = Modifier.weight(1f).height(40.dp),
                     color = if (monitoringEnabled) LWAccentRed else LWTextSecondary.copy(alpha = 0.3f)
                 )
             }
@@ -284,28 +276,61 @@ private fun HeroCard(monitoringEnabled: Boolean) {
 
 @Composable
 private fun EkgLine(modifier: Modifier = Modifier, color: Color) {
+    val tracer = Color(0xFFFF5555)
+    val active = color.alpha > 0.1f
     Canvas(modifier = modifier) {
         val w = size.width
         val h = size.height
         val mid = h / 2f
-        val path = Path().apply {
-            moveTo(0f, mid)
-            lineTo(w * 0.20f, mid)
-            lineTo(w * 0.27f, mid - h * 0.75f)
-            lineTo(w * 0.32f, mid + h * 0.60f)
-            lineTo(w * 0.37f, mid - h * 0.40f)
-            lineTo(w * 0.42f, mid)
-            lineTo(w * 0.55f, mid)
-            lineTo(w * 0.60f, mid - h * 0.50f)
-            lineTo(w * 0.63f, mid + h * 0.40f)
-            lineTo(w * 0.67f, mid)
-            lineTo(w, mid)
+        val stroke = Stroke(width = 1.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+
+        fun seg(vararg pts: Pair<Float, Float>) = Path().apply {
+            moveTo(pts[0].first, pts[0].second)
+            pts.drop(1).forEach { lineTo(it.first, it.second) }
         }
-        drawPath(
-            path = path,
-            color = color,
-            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        fun glowSeg(path: Path, alpha: Float) {
+            drawPath(path, tracer.copy(alpha = alpha * 0.08f), style = Stroke(16.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            drawPath(path, tracer.copy(alpha = alpha * 0.20f), style = Stroke(7.dp.toPx(),  cap = StrokeCap.Round, join = StrokeJoin.Round))
+            drawPath(path, tracer.copy(alpha = alpha * 0.45f), style = Stroke(3.dp.toPx(),  cap = StrokeCap.Round, join = StrokeJoin.Round))
+            drawPath(path, tracer.copy(alpha = alpha),         style = stroke)
+        }
+
+        // dim baseline — the "old" trace
+        val baseline = seg(
+            0f to mid, w * 0.10f to mid,
+            w * 0.18f to mid, w * 0.22f to mid,
+            w * 0.35f to mid, w * 0.46f to mid,
+            w * 0.54f to mid, w * 0.58f to mid,
+            w * 0.71f to mid, w to mid
         )
+        val baseAlpha = if (active) 0.18f else 0.08f
+        drawPath(baseline, tracer.copy(alpha = baseAlpha), style = stroke)
+
+        // small pre-bump 1
+        glowSeg(seg(w * 0.10f to mid, w * 0.14f to mid - h * 0.20f, w * 0.18f to mid),
+            if (active) 0.35f else 0.10f)
+
+        // beat 1 spike (medium brightness — older beat)
+        glowSeg(seg(
+            w * 0.22f to mid,
+            w * 0.25f to mid - h * 0.85f,
+            w * 0.28f to mid + h * 0.55f,
+            w * 0.31f to mid - h * 0.25f,
+            w * 0.35f to mid
+        ), if (active) 0.55f else 0.12f)
+
+        // small pre-bump 2
+        glowSeg(seg(w * 0.46f to mid, w * 0.50f to mid - h * 0.20f, w * 0.54f to mid),
+            if (active) 0.45f else 0.12f)
+
+        // beat 2 spike (brightest — current beat, most recent)
+        glowSeg(seg(
+            w * 0.58f to mid,
+            w * 0.61f to mid - h * 0.85f,
+            w * 0.64f to mid + h * 0.55f,
+            w * 0.67f to mid - h * 0.25f,
+            w * 0.71f to mid
+        ), if (active) 0.95f else 0.15f)
     }
 }
 
@@ -335,11 +360,10 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                         color = LWTextSecondary
                     )
                 }
-                Icon(
-                    imageVector = Icons.Outlined.Fingerprint,
+                androidx.compose.foundation.Image(
+                    painter = painterResource(id = R.drawable.fingerprint_shield),
                     contentDescription = null,
-                    tint = LWTextSecondary.copy(alpha = 0.5f),
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(56.dp)
                 )
             }
 

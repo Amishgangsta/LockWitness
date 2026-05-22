@@ -44,4 +44,4 @@ val LWChrome = Color(0xFFB8C0C8)
 val LWTextPrimary = Color(0xFFF4F7FA)
 val LWTextSecondary = Color(0xFFAAB7C4)
 val LWBackground = Color(0xFF05080D) // main page background
-val LWPanel = Color(0xFF0B1622)      // cards/buttons/panels
+val LWPanel = Color(0xFF090D15)      // cards/buttons/panels
