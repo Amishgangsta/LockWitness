@@ -6,11 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -136,7 +137,7 @@ internal fun DashboardContent(
             .background(GraphiteBg)
             .padding(contentPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         DashboardTopBar()
         StatusCard(state = state)
@@ -146,7 +147,6 @@ internal fun DashboardContent(
             isPro = monetizationState.isPro,
             onNavigateToUpgrade = onNavigateToUpgrade
         )
-        Spacer(modifier = Modifier.weight(1f))
         BannerAdPlaceholder(state = monetizationState)
     }
 }
