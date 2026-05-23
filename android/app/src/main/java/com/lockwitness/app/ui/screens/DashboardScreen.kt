@@ -118,7 +118,7 @@ fun DashboardScreen(
 
     val settings by settingsRepository.settings.collectAsState(initial = SettingsState.Defaults)
     val incidents by incidentRepository.getAllOrderedByTimestampDesc().collectAsState(initial = emptyList())
-    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
+    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState(isPro = true, billingAvailable = false))
 
     val recent = incidents.firstOrNull()
     val uiState = DashboardUiState(
@@ -346,7 +346,7 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
             ) {
                 EvidenceMiniCard(
                     label = "Photo",
-                    subLabel = "Enabled",
+                    subLabel = "Ready",
                     icon = Icons.Outlined.CameraAlt,
                     status = EvidenceTileStatus.ACTIVE,
                     incidentCount = state.photoCount,
@@ -354,7 +354,7 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                 )
                 EvidenceMiniCard(
                     label = "Video",
-                    subLabel = if (isPro) "Enabled" else "Available in Pro",
+                    subLabel = if (isPro) "Ready" else "Available in Pro",
                     icon = Icons.Outlined.Videocam,
                     status = if (isPro) EvidenceTileStatus.ACTIVE else EvidenceTileStatus.LOCKED,
                     incidentCount = if (isPro) state.videoCount else 0,
@@ -362,7 +362,7 @@ private fun IncidentSummaryCard(state: DashboardUiState, isPro: Boolean) {
                 )
                 EvidenceMiniCard(
                     label = "Location",
-                    subLabel = if (isPro) "Enabled" else "Available in Pro",
+                    subLabel = if (isPro) "Ready" else "Available in Pro",
                     icon = Icons.Outlined.Place,
                     status = if (isPro) EvidenceTileStatus.ACTIVE else EvidenceTileStatus.LOCKED,
                     incidentCount = if (isPro) state.locationCount else 0,

@@ -32,7 +32,7 @@ import com.lockwitness.app.monetization.MonetizationState
 fun AboutScreen(contentPadding: PaddingValues) {
     val context = LocalContext.current
     val monetizationRepository = remember(context) { MonetizationRepository.create(context) }
-    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
+    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState(isPro = true, billingAvailable = false))
 
     Column(
         modifier = Modifier

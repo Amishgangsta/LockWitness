@@ -101,7 +101,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
     val monetizationRepository = remember(context) { MonetizationRepository.create(context) }
     val proFeatureGate = remember { ProFeatureGate() }
     val settings by repository.settings.collectAsState(initial = SettingsState.Defaults)
-    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
+    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState(isPro = true, billingAvailable = false))
     val scope = rememberCoroutineScope()
     val canUseVideo = proFeatureGate.isAllowed(ProFeature.VideoCapture, monetizationState)
     val canUseLocation = proFeatureGate.isAllowed(ProFeature.LocationSnapshot, monetizationState)

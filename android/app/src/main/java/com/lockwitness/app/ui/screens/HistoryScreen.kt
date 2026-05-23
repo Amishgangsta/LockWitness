@@ -71,7 +71,7 @@ fun HistoryScreen(contentPadding: PaddingValues) {
     val shareIntentBuilder = remember(context) { AlertShareIntentBuilder(context) }
     val alertUpdater = remember(repository) { AlertIncidentUpdater(repository) }
     val monetizationRepository = remember(context) { MonetizationRepository.create(context) }
-    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
+    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState(isPro = true, billingAvailable = false))
     val proFeatureGate = remember { ProFeatureGate() }
     val incidents by repository
         .getAllOrderedByTimestampDesc()
