@@ -20,14 +20,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Place
-import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.VerifiedUser
@@ -60,6 +58,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -78,9 +77,14 @@ import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoCaptureResult
 import com.lockwitness.app.ui.components.ForensicCard
 import com.lockwitness.app.ui.components.SectionEyebrow
+import com.lockwitness.app.ui.theme.LWActionOrange
 import com.lockwitness.app.ui.theme.LWBackground
 import com.lockwitness.app.ui.theme.LWChrome
+import com.lockwitness.app.ui.theme.LWSectionBlue
 import com.lockwitness.app.ui.theme.LWSuccessGreen
+import com.lockwitness.app.ui.theme.LWToggleOff
+import com.lockwitness.app.ui.theme.LWToggleOn
+import com.lockwitness.app.ui.theme.LWToggleThumbOff
 import com.lockwitness.app.ui.theme.LockWitnessBorder
 import com.lockwitness.app.ui.theme.LockWitnessPrimary
 import com.lockwitness.app.ui.theme.LockWitnessPrimaryDark
@@ -151,53 +155,20 @@ fun SettingsScreen(contentPadding: PaddingValues) {
             .background(LWBackground)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // Device Admin status banner
-        if (!isDeviceAdminActive) {
-            ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Warning,
-                        contentDescription = null,
-                        tint = LockWitnessPrimary
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Device Admin Required",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Activate to enable failed-unlock monitoring",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = LockWitnessTextSecondary
-                        )
-                    }
-                    Button(
-                        onClick = { context.startActivity(DeviceAdminStatus.activationIntent(context)) },
-                        colors = ButtonDefaults.buttonColors(containerColor = LockWitnessPrimary)
-                    ) {
-                        Text("Activate", color = Color.White)
-                    }
-                }
-            }
-        }
+        Text(
+            text = "Settings",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
+        )
 
         // MONITORING section
         ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
-                SectionEyebrow("Monitoring")
-                Spacer(modifier = Modifier.height(12.dp))
-
+            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SettingsToggleRow(
                     icon = Icons.Outlined.VerifiedUser,
                     title = "Monitoring",
@@ -265,10 +236,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
 
         // SECURITY & STORAGE section
         ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
-                SectionEyebrow("Security & Storage")
-                Spacer(modifier = Modifier.height(12.dp))
-
+            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SettingsToggleRow(
                     icon = Icons.Outlined.Shield,
                     title = "SHA-256 Hashing",
@@ -294,6 +262,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                 SettingsChevronRow(
                     icon = Icons.Outlined.Delete,
                     title = "Auto Delete Old Evidence",
+                    description = "Keep storage optimized",
                     trailingText = "Off"
                 )
                 SettingsDivider()
@@ -301,46 +270,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                 SettingsChevronRow(
                     icon = Icons.Outlined.Storage,
                     title = "Storage Usage",
-                    trailingText = "View details"
-                )
-            }
-        }
-
-        // SYSTEM section
-        ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
-                SectionEyebrow("System")
-                Spacer(modifier = Modifier.height(12.dp))
-
-                SettingsStatusRow(
-                    icon = Icons.Outlined.Security,
-                    title = "Device Admin",
-                    statusText = if (isDeviceAdminActive) "Active" else "Inactive",
-                    statusOk = isDeviceAdminActive
-                )
-                SettingsDivider()
-
-                SettingsStatusRow(
-                    icon = Icons.Outlined.Build,
-                    title = "Billing",
-                    statusText = if (monetizationState.isPro) "Pro" else if (monetizationState.billingAvailable) "Free" else "Unavailable",
-                    statusOk = monetizationState.billingAvailable
-                )
-                SettingsDivider()
-
-                SettingsStatusRow(
-                    icon = Icons.Outlined.CameraAlt,
-                    title = "Camera Permission",
-                    statusText = if (isCameraPermissionGranted) "Granted" else "Not granted",
-                    statusOk = isCameraPermissionGranted
-                )
-                SettingsDivider()
-
-                SettingsStatusRow(
-                    icon = Icons.Outlined.Place,
-                    title = "Location Permission",
-                    statusText = if (isLocationPermissionGranted) "Granted" else "Not granted",
-                    statusOk = isLocationPermissionGranted
+                    description = "View storage usage details"
                 )
             }
         }
@@ -349,7 +279,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         if (isCameraPermissionGranted) {
             ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SectionEyebrow("Self Test")
+                    SettingsSectionHeader("Self Test")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = {
@@ -396,7 +326,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         if (canUseVideo) {
             ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SectionEyebrow("Video Duration")
+                    SettingsSectionHeader("Video Duration")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         SettingsState.AllowedVideoDurations.forEach { duration ->
                             FilterChip(
@@ -424,7 +354,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         if (canUseLocation) {
             ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SectionEyebrow("Location Test")
+                    SettingsSectionHeader("Location Test")
                     if (!isLocationPermissionGranted) {
                         Button(
                             onClick = {
@@ -468,7 +398,7 @@ fun SettingsScreen(contentPadding: PaddingValues) {
 @Composable
 private fun SettingsDivider() {
     HorizontalDivider(
-        modifier = Modifier.padding(vertical = 10.dp),
+        modifier = Modifier.padding(vertical = 4.dp),
         color = LockWitnessBorder
     )
 }
@@ -484,7 +414,9 @@ private fun SettingsToggleRow(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -492,7 +424,7 @@ private fun SettingsToggleRow(
             imageVector = icon,
             contentDescription = null,
             tint = if (enabled) LWChrome else LockWitnessTextSecondary,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(24.dp)
         )
         Column(modifier = Modifier.weight(1f)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -503,17 +435,12 @@ private fun SettingsToggleRow(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 if (trailingBadge != null) {
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = LockWitnessPrimaryDark.copy(alpha = 0.8f)
-                    ) {
-                        Text(
-                            text = trailingBadge,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                        )
-                    }
+                    Text(
+                        text = trailingBadge,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = LWActionOrange,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
             Text(
@@ -527,10 +454,14 @@ private fun SettingsToggleRow(
             onCheckedChange = onCheckedChange,
             enabled = enabled,
             colors = SwitchDefaults.colors(
-                checkedTrackColor = LockWitnessPrimary,
+                checkedTrackColor = LWToggleOn,
                 checkedThumbColor = Color.White,
-                uncheckedTrackColor = LockWitnessBorder,
-                uncheckedBorderColor = LockWitnessBorder
+                uncheckedTrackColor = LWToggleOff,
+                uncheckedThumbColor = LWToggleThumbOff,
+                uncheckedBorderColor = LWToggleOff,
+                disabledUncheckedTrackColor = LWToggleOff.copy(alpha = 0.4f),
+                disabledUncheckedThumbColor = LWToggleThumbOff.copy(alpha = 0.4f),
+                disabledUncheckedBorderColor = LWToggleOff.copy(alpha = 0.4f)
             )
         )
     }
@@ -540,10 +471,13 @@ private fun SettingsToggleRow(
 private fun SettingsChevronRow(
     icon: ImageVector,
     title: String,
-    trailingText: String
+    description: String? = null,
+    trailingText: String? = null
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -551,25 +485,36 @@ private fun SettingsChevronRow(
             imageVector = icon,
             contentDescription = null,
             tint = LockWitnessTextSecondary,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(24.dp)
         )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = trailingText,
-            style = MaterialTheme.typography.bodySmall,
-            color = LockWitnessTextSecondary
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (description != null) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LockWitnessTextSecondary
+                )
+            }
+        }
+        if (trailingText != null) {
+            Text(
+                text = trailingText,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                color = LockWitnessTextSecondary
+            )
+        }
         Icon(
             imageVector = Icons.Outlined.ChevronRight,
             contentDescription = null,
             tint = LockWitnessTextSecondary,
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(20.dp)
         )
     }
 }
@@ -582,7 +527,9 @@ private fun SettingsStatusRow(
     statusOk: Boolean
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -590,7 +537,7 @@ private fun SettingsStatusRow(
             imageVector = icon,
             contentDescription = null,
             tint = LockWitnessTextSecondary,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(24.dp)
         )
         Text(
             text = title,
@@ -611,6 +558,17 @@ private fun SettingsStatusRow(
             color = if (statusOk) LWSuccessGreen else LockWitnessPrimary
         )
     }
+}
+
+@Composable
+private fun SettingsSectionHeader(text: String) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        color = LWSectionBlue,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.2.sp
+    )
 }
 
 private fun android.content.Context.hasLocationPermission(): Boolean =

@@ -74,10 +74,17 @@ import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoCaptureResult
 import com.lockwitness.app.ui.components.ForensicCard
 import com.lockwitness.app.ui.components.SectionEyebrow
+import com.lockwitness.app.ui.theme.LWActionOrange
+import com.lockwitness.app.ui.theme.LWSectionBlue
 import com.lockwitness.app.ui.theme.LWBackground
+import com.lockwitness.app.ui.theme.LWChrome
+import com.lockwitness.app.ui.theme.LWDiagDivider
+import com.lockwitness.app.ui.theme.LWDiagDisabledBtn
+import com.lockwitness.app.ui.theme.LWDiagDisabledText
+import com.lockwitness.app.ui.theme.LWSuccessGreen
+import com.lockwitness.app.ui.theme.LWTextPrimary
 import com.lockwitness.app.ui.theme.LockWitnessBorder
 import com.lockwitness.app.ui.theme.LockWitnessPrimary
-import com.lockwitness.app.ui.theme.LockWitnessSuccess
 import com.lockwitness.app.ui.theme.LockWitnessTextSecondary
 import com.lockwitness.app.ui.theme.LockWitnessWarning
 import com.lockwitness.app.video.Camera2VideoCaptureClient
@@ -216,7 +223,7 @@ internal fun DiagnosticsContent(
                 Icon(
                     imageVector = if (allClear) Icons.Outlined.CheckCircle else Icons.Outlined.Warning,
                     contentDescription = null,
-                    tint = if (allClear) LockWitnessSuccess else LockWitnessPrimary,
+                    tint = if (allClear) LWSuccessGreen else LockWitnessWarning,
                     modifier = Modifier.size(32.dp)
                 )
                 Column(modifier = Modifier.weight(1f)) {
@@ -246,7 +253,7 @@ internal fun DiagnosticsContent(
                     if (index < checks.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 8.dp),
-                            color = LockWitnessBorder
+                            color = LWDiagDivider
                         )
                     }
                 }
@@ -289,26 +296,13 @@ internal fun DiagnosticsContent(
                         modifier = Modifier.weight(1f)
                     )
                 }
-                OutlinedButton(
+                DiagButton(
+                    label = "Share Chooser",
+                    icon = Icons.Outlined.Share,
                     onClick = onTestShareChooser,
                     enabled = canRunExport,
-                    modifier = Modifier.fillMaxWidth(),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        if (canRunExport) LockWitnessPrimary else LockWitnessBorder
-                    )
-                ) {
-                    Icon(
-                        Icons.Outlined.Share,
-                        contentDescription = null,
-                        tint = if (canRunExport) LockWitnessPrimary else LockWitnessTextSecondary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        " Share Chooser",
-                        color = if (canRunExport) LockWitnessPrimary else LockWitnessTextSecondary
-                    )
-                }
+                    modifier = Modifier.fillMaxWidth()
+                )
                 if (actionStatus.isNotEmpty()) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -324,9 +318,9 @@ internal fun DiagnosticsContent(
                             text = actionStatus,
                             style = MaterialTheme.typography.bodySmall,
                             color = when {
-                                actionStatus.startsWith("PASS") -> LockWitnessSuccess
+                                actionStatus.startsWith("PASS") -> LWSuccessGreen
                                 actionStatus.startsWith("FAIL") -> LockWitnessPrimary
-                                else -> LockWitnessTextSecondary
+                                else -> LWChrome
                             }
                         )
                     }
@@ -358,11 +352,11 @@ private fun DiagnosticCheckRow(check: DiagnosticCheck) {
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         val (icon, tint) = when (check.result) {
-            DiagnosticResult.PASS -> Icons.Outlined.CheckCircle to LockWitnessSuccess
+            DiagnosticResult.PASS -> Icons.Outlined.CheckCircle to LWSuccessGreen
             DiagnosticResult.FAIL -> Icons.Outlined.Error to LockWitnessPrimary
             DiagnosticResult.WARNING -> Icons.Outlined.Warning to LockWitnessWarning
-            DiagnosticResult.NOT_TESTED -> Icons.Outlined.Help to LockWitnessTextSecondary
-            DiagnosticResult.UNAVAILABLE -> Icons.Outlined.Info to LockWitnessTextSecondary
+            DiagnosticResult.NOT_TESTED -> Icons.Outlined.Help to LWDiagDisabledText
+            DiagnosticResult.UNAVAILABLE -> Icons.Outlined.Info to LWDiagDisabledText
         }
         Icon(
             imageVector = icon,
@@ -375,12 +369,12 @@ private fun DiagnosticCheckRow(check: DiagnosticCheck) {
                 text = check.name,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = LWTextPrimary
             )
             Text(
                 text = check.detail,
                 style = MaterialTheme.typography.bodySmall,
-                color = LockWitnessTextSecondary
+                color = LWChrome
             )
         }
         Text(
@@ -405,12 +399,14 @@ private fun DiagButton(
         enabled = enabled,
         modifier = modifier,
         colors = ButtonDefaults.buttonColors(
-            containerColor = LockWitnessPrimary,
-            disabledContainerColor = LockWitnessBorder
+            containerColor = LWSectionBlue,
+            disabledContainerColor = LWDiagDisabledBtn,
+            contentColor = Color.White,
+            disabledContentColor = LWDiagDisabledText
         )
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(15.dp))
-        Text(" $label", color = if (enabled) Color.White else LockWitnessTextSecondary)
+        Text(" $label")
     }
 }
 

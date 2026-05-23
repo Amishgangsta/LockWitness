@@ -1,6 +1,8 @@
 package com.lockwitness.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,15 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,8 +27,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.lockwitness.app.ui.theme.LWActionOrange
+import com.lockwitness.app.ui.theme.LWBackground
+import com.lockwitness.app.ui.theme.LWPanel
+import com.lockwitness.app.ui.theme.LWTextPrimary
+import com.lockwitness.app.ui.theme.LWTextSecondary
 import com.lockwitness.app.alert.AlertIncidentUpdater
 import com.lockwitness.app.alert.AlertShareIntentBuilder
 import com.lockwitness.app.data.incident.LockWitnessDatabase
@@ -149,10 +161,10 @@ internal fun HistoryContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color(0xFF05080D))
+            .background(LWBackground)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
@@ -162,34 +174,39 @@ internal fun HistoryContent(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "History",
-                    style = MaterialTheme.typography.headlineMedium
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = LWTextPrimary,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = if (monetizationState.isPro || totalIncidentCount <= incidents.size) {
                         "Local incident timeline"
                     } else {
-                        "Local incident timeline: showing ${incidents.size} of $totalIncidentCount in Free mode"
+                        "Showing ${incidents.size} of $totalIncidentCount"
                     },
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LWTextSecondary
                 )
             }
-            OutlinedButton(
-                onClick = onClearAll,
-                enabled = incidents.isNotEmpty()
-            ) {
-                Text("Clear All")
-            }
+            HistoryOutlinedChip(
+                text = "Clear All",
+                enabled = incidents.isNotEmpty(),
+                onClick = onClearAll
+            )
         }
-        OutlinedButton(
-            onClick = onExportAll,
-            enabled = incidents.isNotEmpty() && canExport
-        ) {
-            Text(if (canExport) "Export All" else "Export All Pro")
-        }
-        Text(
-            text = exportStatus,
-            style = MaterialTheme.typography.bodyMedium
+        HistoryOutlinedChip(
+            text = "Export All",
+            proLabel = if (!canExport) "Pro" else null,
+            enabled = incidents.isNotEmpty() && canExport,
+            onClick = onExportAll
         )
+        if (exportStatus != "No export created." || incidents.isNotEmpty()) {
+            Text(
+                text = exportStatus,
+                style = MaterialTheme.typography.bodySmall,
+                color = LWTextSecondary
+            )
+        }
 
         when {
             selectedIncident != null -> IncidentDetailCard(
@@ -222,13 +239,14 @@ internal fun HistoryLoadingState(contentPadding: PaddingValues) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(LWBackground)
             .padding(contentPadding)
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircularProgressIndicator()
-        Text("Loading incidents")
+        CircularProgressIndicator(color = LWTextSecondary)
+        Text("Loading incidents", style = MaterialTheme.typography.bodyMedium, color = LWTextSecondary)
     }
 }
 
@@ -240,37 +258,75 @@ internal fun HistoryErrorState(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(LWBackground)
             .padding(contentPadding)
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             text = "History unavailable",
-            style = MaterialTheme.typography.headlineSmall
+            style = MaterialTheme.typography.headlineSmall,
+            color = LWTextPrimary,
+            fontWeight = FontWeight.Bold
         )
-        Text(message)
+        Text(message, style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
     }
 }
 
 @Composable
-private fun EmptyHistoryCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "No incidents recorded",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "Failed-unlock records will appear here after monitoring creates local incidents.",
-                style = MaterialTheme.typography.bodyMedium
-            )
+private fun HistoryOutlinedChip(
+    text: String?,
+    proLabel: String? = null,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    val borderColor = if (enabled) Color(0xFF374151) else Color(0xFF1F2937)
+    val labelText = buildAnnotatedString {
+        if (text != null) {
+            withStyle(SpanStyle(color = if (enabled) LWTextPrimary else LWTextSecondary, fontWeight = FontWeight.Medium)) {
+                append(text)
+            }
         }
+        if (proLabel != null) {
+            if (text != null) append(" ")
+            withStyle(SpanStyle(color = LWActionOrange, fontWeight = FontWeight.SemiBold)) {
+                append(proLabel)
+            }
+        }
+    }
+    Text(
+        text = labelText,
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(LWPanel)
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+    )
+}
+
+@Composable
+private fun EmptyHistoryCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(LWPanel)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = "No incidents recorded",
+            style = MaterialTheme.typography.titleMedium,
+            color = LWTextPrimary,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = "Failed-unlock records will appear here after monitoring creates local incidents.",
+            style = MaterialTheme.typography.bodySmall,
+            color = LWTextSecondary
+        )
     }
 }
 
@@ -280,50 +336,51 @@ private fun IncidentSummaryCard(
     onOpen: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(LWPanel)
+            .border(1.dp, Color(0xFF1F2937), RoundedCornerShape(10.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = summary.timestamp,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text("Trigger: ${summary.triggerType}")
-            Text("Failed attempts: ${summary.failedAttemptCount}")
-            StatusChips(summary)
-            IndicatorRow(summary)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onOpen) {
-                    Text("Details")
-                }
-                OutlinedButton(onClick = onDelete) {
-                    Text("Delete")
-                }
-            }
+        Text(
+            text = summary.timestamp,
+            style = MaterialTheme.typography.titleSmall,
+            color = LWTextPrimary,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = "Trigger: ${summary.triggerType}  •  Attempts: ${summary.failedAttemptCount}",
+            style = MaterialTheme.typography.bodySmall,
+            color = LWTextSecondary
+        )
+        StatusChips(summary)
+        IndicatorRow(summary)
+        Spacer(modifier = Modifier.height(2.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            HistoryOutlinedChip(text = "Details", onClick = onOpen)
+            HistoryOutlinedChip(text = "Delete", onClick = onDelete)
         }
     }
 }
 
 @Composable
 private fun StatusChips(summary: IncidentSummaryUi) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text("Photo: ${summary.photoStatus}")
-        Text("Video: ${summary.videoStatus}")
-        Text("Location: ${summary.locationStatus}")
-        Text("Email: ${summary.emailStatus}")
-        Text("Share: ${summary.shareStatus}")
+    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        Text("Photo: ${summary.photoStatus}", style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
+        Text("Video: ${summary.videoStatus}", style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
+        Text("Location: ${summary.locationStatus}", style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
     }
 }
 
 @Composable
 private fun IndicatorRow(summary: IncidentSummaryUi) {
     Text(
-        text = "Media: photo ${summary.hasPhoto.yesNo()}, video ${summary.hasVideo.yesNo()}, location ${summary.hasLocation.yesNo()}",
-        style = MaterialTheme.typography.bodyMedium
+        text = "Photo ${summary.hasPhoto.yesNo()}  Video ${summary.hasVideo.yesNo()}  Location ${summary.hasLocation.yesNo()}",
+        style = MaterialTheme.typography.bodySmall,
+        color = LWTextSecondary
     )
 }
 
@@ -337,53 +394,46 @@ private fun IncidentDetailCard(
     canSend: Boolean,
     canExport: Boolean
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(LWPanel)
+            .border(1.dp, Color(0xFF1F2937), RoundedCornerShape(10.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Incident detail",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(detail.timestamp)
-                }
-                OutlinedButton(onClick = onBack) {
-                    Text("Back")
-                }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Incident Detail",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = LWTextPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(detail.timestamp, style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
             }
-            DetailField("Trigger", detail.triggerType)
-            DetailField("Failed attempts", detail.failedAttemptCount)
-            DetailSection("Settings snapshot", detail.settingsSnapshot)
-            DetailSection("Device", detail.deviceMetadata)
-            DetailMediaSection(detail.mediaFields)
-            DetailSection("Location", detail.locationFields)
-            DetailSection("Hashes", detail.hashFields)
-            DetailSection("Module statuses", detail.statusFields)
-            DetailField("Notes", detail.notes)
-            Spacer(modifier = Modifier.padding(top = 4.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = onExport,
-                    enabled = canExport
-                ) {
-                    Text(if (canExport) "Export Incident" else "Export Pro")
-                }
-                Button(
-                    onClick = onSend,
-                    enabled = canSend && canExport
-                ) {
-                    Text("Send")
-                }
-                OutlinedButton(onClick = onDelete) {
-                    Text("Delete Incident")
-                }
-            }
+            HistoryOutlinedChip(text = "Back", onClick = onBack)
+        }
+        DetailField("Trigger", detail.triggerType)
+        DetailField("Failed attempts", detail.failedAttemptCount)
+        DetailSection("Settings", detail.settingsSnapshot)
+        DetailSection("Device", detail.deviceMetadata)
+        DetailMediaSection(detail.mediaFields)
+        DetailSection("Location", detail.locationFields)
+        DetailSection("Hashes", detail.hashFields)
+        DetailSection("Module statuses", detail.statusFields)
+        DetailField("Notes", detail.notes)
+        Spacer(modifier = Modifier.height(2.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            HistoryOutlinedChip(
+                text = if (canExport) "Export" else null,
+                proLabel = if (!canExport) "Pro" else null,
+                enabled = canExport,
+                onClick = onExport
+            )
+            HistoryOutlinedChip(text = "Send", enabled = canSend && canExport, onClick = onSend)
+            HistoryOutlinedChip(text = "Delete", onClick = onDelete)
         }
     }
 }
@@ -408,10 +458,13 @@ private fun DetailSection(
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.labelMedium,
+            color = Color(0xFF2A6FD6),
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
         )
         if (fields.isEmpty()) {
-            Text("No data recorded.")
+            Text("No data recorded.", style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
         } else {
             fields.forEach { (label, value) ->
                 DetailField(label, value)
@@ -428,11 +481,13 @@ private fun DetailField(
     Column {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium
+            style = MaterialTheme.typography.labelSmall,
+            color = LWTextSecondary
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodySmall,
+            color = LWTextPrimary
         )
     }
 }

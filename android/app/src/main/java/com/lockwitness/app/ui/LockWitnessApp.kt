@@ -28,9 +28,10 @@ import com.lockwitness.app.ui.screens.HistoryScreen
 import com.lockwitness.app.ui.screens.SettingsScreen
 import com.lockwitness.app.ui.screens.UpgradeScreen
 import com.lockwitness.app.ui.theme.LWBackground
+import com.lockwitness.app.ui.theme.LWNavActive
+import com.lockwitness.app.ui.theme.LWNavInactive
+import com.lockwitness.app.ui.theme.LWNavIndicator
 import com.lockwitness.app.ui.theme.LWPanel
-import com.lockwitness.app.ui.theme.LockWitnessPrimary
-import com.lockwitness.app.ui.theme.LockWitnessTextSecondary
 
 @Composable
 fun LockWitnessApp() {
@@ -68,11 +69,11 @@ fun LockWitnessApp() {
                         icon = { Icon(screen.icon, contentDescription = screen.label) },
                         label = { Text(screen.label) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = LockWitnessPrimary,
-                            selectedTextColor = LockWitnessPrimary,
-                            indicatorColor = MaterialTheme.colorScheme.surfaceVariant,
-                            unselectedIconColor = LockWitnessTextSecondary,
-                            unselectedTextColor = LockWitnessTextSecondary
+                            selectedIconColor = LWNavInactive,
+                            selectedTextColor = LWNavInactive,
+                            indicatorColor = Color.Transparent,
+                            unselectedIconColor = LWNavInactive,
+                            unselectedTextColor = LWNavInactive
                         )
                     )
                 }

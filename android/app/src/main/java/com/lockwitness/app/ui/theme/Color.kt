@@ -44,4 +44,24 @@ val LWChrome = Color(0xFFB8C0C8)
 val LWTextPrimary = Color(0xFFF4F7FA)
 val LWTextSecondary = Color(0xFFAAB7C4)
 val LWBackground = Color(0xFF05080D) // main page background
-val LWPanel = Color(0xFF090D15)      // cards/buttons/panels
+val LWPanel = Color(0xFF091827)      // cards/buttons/panels
+
+// Settings-spec aliases
+val LWToggleOn = Color(0xFF34C759)    // toggle active track (green)
+val LWToggleOff = Color(0xFF4B5563)   // toggle inactive track
+val LWToggleThumbOff = Color(0xFF6B7280) // inactive toggle thumb
+val LWSectionBlue = Color(0xFF2A6FD6) // section header labels
+
+// Action / status colors
+val LWActionOrange = Color(0xFFFF8200) // Activate button & PRO badges
+val LWWarningYellow = Color(0xFFFFC100) // Warning triangle icon
+
+// Diagnostics screen spec
+val LWDiagDivider = Color(0xFF2E3640)       // row dividers in checks list
+val LWDiagDisabledBtn = Color(0xFF2A2A2A)   // disabled self-test button background
+val LWDiagDisabledText = Color(0xFF8F98A6)  // disabled self-test button text/icon
+
+// Bottom navigation
+val LWNavActive = Color(0xFF34C759)   // active icon & label (green)
+val LWNavInactive = Color(0xFFD1D5DB) // inactive icons & labels
+val LWNavIndicator = Color(0xFF1F2937) // selected tab pill background
