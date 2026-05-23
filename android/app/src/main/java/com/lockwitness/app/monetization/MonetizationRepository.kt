@@ -29,10 +29,9 @@ class MonetizationRepository(
         if (billingState.billingAvailable) {
             billingState
         } else {
-            MonetizationState(
-                isPro = preferences[Keys.IsPro] ?: false,
-                billingAvailable = preferences[Keys.BillingAvailable] ?: false
-            )
+            // Billing not yet connected — grant Pro access for beta testing.
+            // When Play Billing goes live, billingAvailable becomes true and this branch is bypassed.
+            MonetizationState(isPro = true, billingAvailable = false)
         }
     }
 

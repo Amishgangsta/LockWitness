@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Error
@@ -61,7 +60,6 @@ import com.lockwitness.app.diagnostics.DiagnosticCheck
 import com.lockwitness.app.diagnostics.DiagnosticInput
 import com.lockwitness.app.diagnostics.DiagnosticMapper
 import com.lockwitness.app.diagnostics.DiagnosticResult
-import com.lockwitness.app.diagnostics.RuntimeVerificationChecklist
 import com.lockwitness.app.export.LocalIncidentExporter
 import com.lockwitness.app.location.AndroidLocationSnapshotClient
 import com.lockwitness.app.location.LocationSnapshotResult
@@ -125,7 +123,6 @@ fun DiagnosticsScreen(contentPadding: PaddingValues) {
     DiagnosticsContent(
         contentPadding = contentPadding,
         checks = mapper.checks(input),
-        checklistMarkdown = RuntimeVerificationChecklist.asMarkdown(),
         actionStatus = actionStatus,
         canRunVideo = proFeatureGate.isAllowed(ProFeature.VideoCapture, monetizationState),
         canRunLocation = proFeatureGate.isAllowed(ProFeature.LocationSnapshot, monetizationState),
@@ -173,7 +170,6 @@ fun DiagnosticsScreen(contentPadding: PaddingValues) {
 internal fun DiagnosticsContent(
     contentPadding: PaddingValues,
     checks: List<DiagnosticCheck>,
-    checklistMarkdown: String,
     actionStatus: String,
     canRunVideo: Boolean,
     canRunLocation: Boolean,
@@ -282,39 +278,21 @@ internal fun DiagnosticsContent(
                     )
                 }
                 if (actionStatus.isNotEmpty()) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.BugReport,
-                            contentDescription = null,
-                            tint = LockWitnessTextSecondary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = actionStatus,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = when {
-                                actionStatus.startsWith("PASS") -> LWSuccessGreen
-                                actionStatus.startsWith("FAIL") -> LockWitnessPrimary
-                                else -> LWChrome
-                            }
-                        )
-                    }
+                    Text(
+                        text = when {
+                            actionStatus.startsWith("PASS") -> "Capture successful."
+                            actionStatus.startsWith("FAIL") -> "Capture failed. Check permissions in Settings."
+                            actionStatus.startsWith("UNAVAILABLE") -> "Unavailable. Check permissions in Settings."
+                            else -> "Running…"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = when {
+                            actionStatus.startsWith("PASS") -> LWSuccessGreen
+                            actionStatus.startsWith("FAIL") || actionStatus.startsWith("UNAVAILABLE") -> LockWitnessPrimary
+                            else -> LWChrome
+                        }
+                    )
                 }
-            }
-        }
-
-        // Runtime verification checklist
-        ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SectionEyebrow("Runtime Checklist")
-                Text(
-                    text = checklistMarkdown,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LockWitnessTextSecondary
-                )
             }
         }
 
