@@ -16,22 +16,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Error
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.Help
+import androidx.compose.material.icons.outlined.FactCheck
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -42,8 +43,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -70,20 +69,16 @@ import com.lockwitness.app.monetization.ProFeatureGate
 import com.lockwitness.app.photo.Camera2PhotoCaptureClient
 import com.lockwitness.app.photo.PhotoCaptureResult
 import com.lockwitness.app.ui.components.ForensicCard
+import com.lockwitness.app.ui.components.ForensicDivider
 import com.lockwitness.app.ui.components.SectionEyebrow
-import com.lockwitness.app.ui.theme.LWActionOrange
-import com.lockwitness.app.ui.theme.LWSectionBlue
-import com.lockwitness.app.ui.theme.LWBackground
-import com.lockwitness.app.ui.theme.LWChrome
-import com.lockwitness.app.ui.theme.LWDiagDivider
-import com.lockwitness.app.ui.theme.LWDiagDisabledBtn
-import com.lockwitness.app.ui.theme.LWDiagDisabledText
-import com.lockwitness.app.ui.theme.LWSuccessGreen
-import com.lockwitness.app.ui.theme.LWTextPrimary
-import com.lockwitness.app.ui.theme.LockWitnessBorder
-import com.lockwitness.app.ui.theme.LockWitnessPrimary
-import com.lockwitness.app.ui.theme.LockWitnessTextSecondary
-import com.lockwitness.app.ui.theme.LockWitnessWarning
+import com.lockwitness.app.ui.components.StatusPill
+import com.lockwitness.app.ui.theme.CautionAmber
+import com.lockwitness.app.ui.theme.DestructiveRed
+import com.lockwitness.app.ui.theme.GraphiteBg
+import com.lockwitness.app.ui.theme.StrokeSubtle
+import com.lockwitness.app.ui.theme.TextPrimary
+import com.lockwitness.app.ui.theme.TextSecondary
+import com.lockwitness.app.ui.theme.VerifiedGreen
 import com.lockwitness.app.video.Camera2VideoCaptureClient
 import com.lockwitness.app.video.VideoCaptureResult
 import kotlinx.coroutines.launch
@@ -150,8 +145,8 @@ fun DiagnosticsScreen(contentPadding: PaddingValues) {
                 actionStatus = "Testing location snapshot…"
                 actionStatus = when (val r = AndroidLocationSnapshotClient(context).captureLocationSnapshot()) {
                     is LocationSnapshotResult.Success -> "PASS — Location: ${r.latitude}, ${r.longitude}"
-                    is LocationSnapshotResult.Unavailable -> "UNAVAILABLE — Location: ${r.reason}"
-                    is LocationSnapshotResult.Failure -> "FAIL — Location: ${r.reason}"
+                    is LocationSnapshotResult.Unavailable -> "UNAVAILABLE — ${r.reason}"
+                    is LocationSnapshotResult.Failure -> "FAIL — ${r.reason}"
                 }
             }
         },
@@ -179,83 +174,86 @@ internal fun DiagnosticsContent(
     onTestLocation: () -> Unit,
     onTestExport: () -> Unit
 ) {
+    val passCount = checks.count { it.result == DiagnosticResult.PASS }
+    val totalCount = checks.size
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LWBackground)
+            .background(GraphiteBg)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Diagnostic checks
-        ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
-                SectionEyebrow("Checks")
-                Spacer(modifier = Modifier.height(12.dp))
-                checks.forEachIndexed { index, check ->
-                    DiagnosticCheckRow(check)
-                    if (index < checks.lastIndex) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            color = LWDiagDivider
-                        )
-                    }
+        Text(
+            text = "Diagnostics",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary
+        )
+
+        // Readiness score card
+        ForensicCard(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Outlined.Speed, contentDescription = null, tint = if (passCount == totalCount) VerifiedGreen else CautionAmber, modifier = Modifier.size(28.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    SectionEyebrow("Readiness Score")
+                    Text(
+                        text = "$passCount / $totalCount checks passing",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = if (passCount == totalCount) "Evidence system fully ready." else "Evidence system mostly ready.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
                 }
             }
         }
 
-        // Manual diagnostics
-        ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SectionEyebrow("Self Test")
+        // Runtime tests
+        ForensicCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SectionEyebrow("Runtime Tests")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DiagButton(
-                        label = "Photo",
-                        icon = Icons.Outlined.CameraAlt,
-                        onClick = onTestPhoto,
-                        enabled = true,
-                        modifier = Modifier.weight(1f)
-                    )
-                    DiagButton(
-                        label = "Video",
-                        icon = Icons.Outlined.Videocam,
-                        onClick = onTestVideo,
-                        enabled = canRunVideo,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DiagButton(
-                        label = "Location",
-                        icon = Icons.Outlined.Place,
-                        onClick = onTestLocation,
-                        enabled = canRunLocation,
-                        modifier = Modifier.weight(1f)
-                    )
-                    DiagButton(
-                        label = "Export",
-                        icon = Icons.Outlined.FileDownload,
-                        onClick = onTestExport,
-                        enabled = canRunExport,
-                        modifier = Modifier.weight(1f)
-                    )
+                    DiagTestButton(label = "Photo", icon = Icons.Outlined.CameraAlt, enabled = true, onClick = onTestPhoto, modifier = Modifier.weight(1f))
+                    DiagTestButton(label = "Video", icon = Icons.Outlined.Videocam, enabled = canRunVideo, onClick = onTestVideo, modifier = Modifier.weight(1f))
+                    DiagTestButton(label = "Location", icon = Icons.Outlined.LocationOn, enabled = canRunLocation, onClick = onTestLocation, modifier = Modifier.weight(1f))
+                    DiagTestButton(label = "Export", icon = Icons.Outlined.Archive, enabled = canRunExport, onClick = onTestExport, modifier = Modifier.weight(1f))
                 }
                 if (actionStatus.isNotEmpty()) {
+                    val color = when {
+                        actionStatus.startsWith("PASS") -> VerifiedGreen
+                        actionStatus.startsWith("FAIL") -> DestructiveRed
+                        actionStatus.startsWith("UNAVAILABLE") -> CautionAmber
+                        else -> TextSecondary
+                    }
                     Text(
-                        text = when {
-                            actionStatus.startsWith("PASS") -> "Capture successful."
-                            actionStatus.startsWith("FAIL") -> "Capture failed. Check permissions in Settings."
-                            actionStatus.startsWith("UNAVAILABLE") -> "Unavailable. Check permissions in Settings."
-                            else -> "Running…"
-                        },
+                        text = actionStatus,
                         style = MaterialTheme.typography.bodySmall,
-                        color = when {
-                            actionStatus.startsWith("PASS") -> LWSuccessGreen
-                            actionStatus.startsWith("FAIL") || actionStatus.startsWith("UNAVAILABLE") -> LockWitnessPrimary
-                            else -> LWChrome
-                        }
+                        color = color
                     )
+                }
+            }
+        }
+
+        // Checks list
+        ForensicCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                SectionEyebrow("Checks")
+                Spacer(modifier = Modifier.height(10.dp))
+                checks.forEachIndexed { index, check ->
+                    DiagCheckRow(check = check)
+                    if (index < checks.lastIndex) {
+                        ForensicDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    }
                 }
             }
         }
@@ -265,68 +263,50 @@ internal fun DiagnosticsContent(
 }
 
 @Composable
-private fun DiagnosticCheckRow(check: DiagnosticCheck) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+private fun DiagTestButton(
+    label: String,
+    icon: ImageVector,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier,
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = if (enabled) TextPrimary else TextSecondary
+        ),
+        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp)
     ) {
-        val (icon, tint) = when (check.result) {
-            DiagnosticResult.PASS -> Icons.Outlined.CheckCircle to LWSuccessGreen
-            DiagnosticResult.FAIL -> Icons.Outlined.Error to LockWitnessPrimary
-            DiagnosticResult.WARNING -> Icons.Outlined.Warning to LockWitnessWarning
-            DiagnosticResult.NOT_TESTED -> Icons.Outlined.Help to LWDiagDisabledText
-            DiagnosticResult.UNAVAILABLE -> Icons.Outlined.Info to LWDiagDisabledText
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
+            Text(label, style = MaterialTheme.typography.labelSmall)
         }
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(18.dp)
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = check.name,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = LWTextPrimary
-            )
-            Text(
-                text = check.detail,
-                style = MaterialTheme.typography.bodySmall,
-                color = LWChrome
-            )
-        }
-        Text(
-            text = check.result.name,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = tint
-        )
     }
 }
 
 @Composable
-private fun DiagButton(
-    label: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-    enabled: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = LWSectionBlue,
-            disabledContainerColor = LWDiagDisabledBtn,
-            contentColor = Color.White,
-            disabledContentColor = LWDiagDisabledText
-        )
+private fun DiagCheckRow(check: DiagnosticCheck) {
+    val (pillText, pillColor, icon) = when (check.result) {
+        DiagnosticResult.PASS -> Triple("Pass", VerifiedGreen, Icons.Outlined.CheckCircle)
+        DiagnosticResult.FAIL -> Triple("Fail", DestructiveRed, Icons.Outlined.Error)
+        DiagnosticResult.WARNING -> Triple("Warning", CautionAmber, Icons.Outlined.Warning)
+        DiagnosticResult.UNAVAILABLE -> Triple("Unavailable", CautionAmber, Icons.Outlined.Info)
+        DiagnosticResult.NOT_TESTED -> Triple("Not Tested", TextSecondary, Icons.Outlined.Info)
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(15.dp))
-        Text(" $label")
+        Icon(icon, contentDescription = null, tint = pillColor, modifier = Modifier.size(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(check.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Text(check.detail, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+        }
+        StatusPill(text = pillText, color = pillColor)
     }
 }
 
@@ -338,27 +318,15 @@ private fun diagnosticPlaceholderIncident(deviceInfo: AndroidDeviceInfoProvider)
         timestamp = System.currentTimeMillis(),
         triggerType = "DIAGNOSTIC_EXPORT",
         failedAttemptCount = 0,
-        photoEnabled = false,
-        videoEnabled = false,
-        locationEnabled = false,
-        emailEnabled = false,
-        shareEnabled = false,
-        timelineEnabled = true,
-        photoPath = null,
-        videoPath = null,
-        latitude = null,
-        longitude = null,
-        locationAccuracy = null,
-        locationProvider = null,
-        imageSha256 = null,
-        videoSha256 = null,
+        photoEnabled = false, videoEnabled = false, locationEnabled = false,
+        emailEnabled = false, shareEnabled = false, timelineEnabled = true,
+        photoPath = null, videoPath = null, latitude = null, longitude = null,
+        locationAccuracy = null, locationProvider = null,
+        imageSha256 = null, videoSha256 = null,
         deviceModel = deviceInfo.deviceModel,
         androidVersion = deviceInfo.androidVersion,
         appVersion = deviceInfo.appVersion,
-        photoStatus = "NOT_ATTEMPTED",
-        videoStatus = "NOT_ATTEMPTED",
-        locationStatus = "NOT_ATTEMPTED",
-        emailStatus = "DISABLED",
-        shareStatus = "DISABLED",
+        photoStatus = "NOT_ATTEMPTED", videoStatus = "NOT_ATTEMPTED",
+        locationStatus = "NOT_ATTEMPTED", emailStatus = "DISABLED", shareStatus = "DISABLED",
         notes = "Diagnostic placeholder export only; not stored as an incident."
     )

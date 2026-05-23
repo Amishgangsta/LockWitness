@@ -20,4 +20,4 @@ enum class LockWitnessDestination(
     About("about", "About", Icons.Outlined.Info)
 }
 
-const val UPGRADE_ROUTE = "upgrade"
+
