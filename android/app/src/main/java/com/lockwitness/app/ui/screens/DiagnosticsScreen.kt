@@ -50,7 +50,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.lockwitness.app.alert.AlertShareIntentBuilder
 import com.lockwitness.app.admin.AndroidDeviceInfoProvider
 import com.lockwitness.app.admin.DeviceAdminStatus
 import com.lockwitness.app.data.SettingsRepository
@@ -106,10 +105,8 @@ fun DiagnosticsScreen(contentPadding: PaddingValues) {
     val mapper = remember { DiagnosticMapper() }
     val deviceInfo = remember(context) { AndroidDeviceInfoProvider(context) }
     val exporter = remember(context) { LocalIncidentExporter(context) }
-    val shareIntentBuilder = remember(context) { AlertShareIntentBuilder(context) }
     val scope = rememberCoroutineScope()
     var actionStatus by remember { mutableStateOf("") }
-    var chooserAvailable by remember { mutableStateOf<Boolean?>(null) }
 
     val input = DiagnosticInput(
         isDeviceAdminActive = DeviceAdminStatus.isActive(context),
@@ -119,7 +116,6 @@ fun DiagnosticsScreen(contentPadding: PaddingValues) {
         settings = settings,
         historyAvailable = true,
         exportAvailable = proFeatureGate.isAllowed(ProFeature.ExportZip, monetizationState),
-        shareChooserAvailable = chooserAvailable,
         monetizationState = monetizationState,
         appVersion = deviceInfo.appVersion,
         androidVersion = deviceInfo.androidVersion,
@@ -169,16 +165,6 @@ fun DiagnosticsScreen(contentPadding: PaddingValues) {
                 val result = exporter.exportIncidents(exportIncidents, filePrefix = "lockwitness_diagnostic")
                 actionStatus = "PASS — Export: ${result.file.name}"
             }
-        },
-        onTestShareChooser = {
-            scope.launch {
-                actionStatus = "Testing share chooser…"
-                val exportIncidents = incidents.ifEmpty { listOf(diagnosticPlaceholderIncident(deviceInfo)) }
-                val result = exporter.exportIncidents(exportIncidents, filePrefix = "lockwitness_diagnostic_share")
-                val intent = shareIntentBuilder.buildChooserIntent(result.file)
-                chooserAvailable = intent.resolveActivity(context.packageManager) != null
-                actionStatus = if (chooserAvailable == true) "PASS — Share chooser available" else "UNAVAILABLE — No compatible chooser"
-            }
         }
     )
 }
@@ -195,8 +181,7 @@ internal fun DiagnosticsContent(
     onTestPhoto: () -> Unit,
     onTestVideo: () -> Unit,
     onTestLocation: () -> Unit,
-    onTestExport: () -> Unit,
-    onTestShareChooser: () -> Unit
+    onTestExport: () -> Unit
 ) {
     val passCount = checks.count { it.result == DiagnosticResult.PASS }
     val failCount = checks.count { it.result == DiagnosticResult.FAIL }
@@ -296,13 +281,6 @@ internal fun DiagnosticsContent(
                         modifier = Modifier.weight(1f)
                     )
                 }
-                DiagButton(
-                    label = "Share Chooser",
-                    icon = Icons.Outlined.Share,
-                    onClick = onTestShareChooser,
-                    enabled = canRunExport,
-                    modifier = Modifier.fillMaxWidth()
-                )
                 if (actionStatus.isNotEmpty()) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
