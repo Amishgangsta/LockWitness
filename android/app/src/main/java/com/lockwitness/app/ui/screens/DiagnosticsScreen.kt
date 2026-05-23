@@ -252,7 +252,7 @@ internal fun DiagnosticsContent(
                 checks.forEachIndexed { index, check ->
                     DiagCheckRow(check = check)
                     if (index < checks.lastIndex) {
-                        ForensicDivider(modifier = Modifier.padding(vertical = 3.dp))
+                        ForensicDivider(modifier = Modifier.padding(vertical = 6.dp))
                     }
                 }
             }
@@ -276,10 +276,10 @@ private fun DiagTestButton(
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = if (enabled) TextPrimary else TextSecondary
         ),
-        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp)
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
             Text(label, style = MaterialTheme.typography.labelSmall)
         }
     }
@@ -296,16 +296,16 @@ private fun DiagCheckRow(check: DiagnosticCheck) {
     }
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Icon(icon, contentDescription = null, tint = pillColor, modifier = Modifier.size(16.dp))
+        Icon(icon, contentDescription = null, tint = pillColor, modifier = Modifier.size(20.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(check.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-            Text(check.detail, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text(check.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Text(check.detail, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
         }
-        StatusPill(text = pillText, color = pillColor, large = true)
+        StatusPill(text = pillText, color = pillColor, large = true, modifier = Modifier.weight(0.6f))
     }
 }
 

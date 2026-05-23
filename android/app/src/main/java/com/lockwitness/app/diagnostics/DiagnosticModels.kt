@@ -43,8 +43,7 @@ class DiagnosticMapper {
                 name = "Plan",
                 result = DiagnosticResult.PASS,
                 detail = if (input.monetizationState.isPro) "Pro" else "Free"
-            ),
-            DiagnosticCheck("App version", DiagnosticResult.PASS, input.appVersion)
+            )
         )
 
     private fun booleanCheck(

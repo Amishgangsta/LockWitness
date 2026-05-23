@@ -1,8 +1,9 @@
 package com.lockwitness.app.ui
 
 import android.net.Uri
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -11,7 +12,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -34,19 +37,22 @@ import com.lockwitness.app.ui.theme.LWNavActive
 import com.lockwitness.app.ui.theme.LWNavIndicator
 import com.lockwitness.app.ui.theme.LWNavInactive
 import com.lockwitness.app.ui.theme.SurfaceRaised
+import kotlinx.coroutines.launch
 
 const val UPGRADE_ROUTE = "upgrade"
 const val SETUP_ROUTE = "setup"
+private const val MAIN_ROUTE = "main"
 
 @Composable
 fun LockWitnessApp() {
     val navController = rememberNavController()
     val screens = LockWitnessDestination.entries
-    val currentBackStack by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStack?.destination?.route ?: LockWitnessDestination.Dashboard.route
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(pageCount = { screens.size })
 
-    val bottomNavRoutes = screens.map { it.route }.toSet()
-    val showBottomNav = currentRoute in bottomNavRoutes
+    val currentBackStack by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStack?.destination?.route ?: MAIN_ROUTE
+    val showBottomNav = currentRoute == MAIN_ROUTE
 
     Scaffold(
         containerColor = GraphiteBg,
@@ -57,18 +63,11 @@ fun LockWitnessApp() {
                     containerColor = SurfaceRaised,
                     contentColor = LWNavInactive
                 ) {
-                    screens.forEach { screen ->
+                    screens.forEachIndexed { index, screen ->
                         NavigationBarItem(
-                            selected = currentRoute == screen.route,
+                            selected = pagerState.currentPage == index,
                             onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(LockWitnessDestination.Dashboard.route) {
-                                        saveState = true
-                                        inclusive = false
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                                coroutineScope.launch { pagerState.animateScrollToPage(index) }
                             },
                             icon = { Icon(screen.icon, contentDescription = screen.label) },
                             label = { Text(screen.label) },
@@ -87,16 +86,36 @@ fun LockWitnessApp() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = LockWitnessDestination.Dashboard.route,
+            startDestination = MAIN_ROUTE,
             modifier = Modifier.fillMaxSize()
         ) {
-            composable(LockWitnessDestination.Dashboard.route) {
-                DashboardScreen(
-                    contentPadding = innerPadding,
-                    onNavigateToUpgrade = { navController.navigate(UPGRADE_ROUTE) },
-                    onNavigateToSettings = { navController.navigate(LockWitnessDestination.Settings.route) },
-                    onNavigateToSetup = { navController.navigate(SETUP_ROUTE) }
-                )
+            composable(MAIN_ROUTE) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    when (screens[page]) {
+                        LockWitnessDestination.Dashboard -> DashboardScreen(
+                            contentPadding = innerPadding,
+                            onNavigateToUpgrade = { navController.navigate(UPGRADE_ROUTE) },
+                            onNavigateToSettings = {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(LockWitnessDestination.Settings.ordinal)
+                                }
+                            },
+                            onNavigateToSetup = { navController.navigate(SETUP_ROUTE) }
+                        )
+                        LockWitnessDestination.History -> HistoryScreen(
+                            contentPadding = innerPadding,
+                            onNavigateToDetail = { incidentId ->
+                                navController.navigate("incident_detail/$incidentId")
+                            }
+                        )
+                        LockWitnessDestination.Settings -> SettingsScreen(contentPadding = innerPadding)
+                        LockWitnessDestination.Diagnostics -> DiagnosticsScreen(contentPadding = innerPadding)
+                        LockWitnessDestination.About -> AboutScreen(contentPadding = innerPadding)
+                    }
+                }
             }
             composable(UPGRADE_ROUTE) {
                 UpgradeScreen(
@@ -107,18 +126,12 @@ fun LockWitnessApp() {
             composable(SETUP_ROUTE) {
                 SetupScreen(
                     contentPadding = innerPadding,
-                    onNavigateToDashboard = { navController.navigate(LockWitnessDestination.Dashboard.route) },
-                    onNavigateToDiagnostics = { navController.navigate(LockWitnessDestination.Diagnostics.route) }
-                )
-            }
-            composable(LockWitnessDestination.Settings.route) {
-                SettingsScreen(contentPadding = innerPadding)
-            }
-            composable(LockWitnessDestination.History.route) {
-                HistoryScreen(
-                    contentPadding = innerPadding,
-                    onNavigateToDetail = { incidentId ->
-                        navController.navigate("incident_detail/$incidentId")
+                    onNavigateToDashboard = { navController.popBackStack() },
+                    onNavigateToDiagnostics = {
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(LockWitnessDestination.Diagnostics.ordinal)
+                        }
+                        navController.popBackStack()
                     }
                 )
             }
@@ -131,9 +144,7 @@ fun LockWitnessApp() {
                     incidentId = incidentId,
                     contentPadding = innerPadding,
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToExport = { id ->
-                        navController.navigate("export_evidence/$id")
-                    }
+                    onNavigateToExport = { id -> navController.navigate("export_evidence/$id") }
                 )
             }
             composable(
@@ -160,12 +171,6 @@ fun LockWitnessApp() {
                     contentPadding = innerPadding,
                     onNavigateBack = { navController.popBackStack() }
                 )
-            }
-            composable(LockWitnessDestination.Diagnostics.route) {
-                DiagnosticsScreen(contentPadding = innerPadding)
-            }
-            composable(LockWitnessDestination.About.route) {
-                AboutScreen(contentPadding = innerPadding)
             }
         }
     }

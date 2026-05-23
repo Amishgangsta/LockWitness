@@ -75,15 +75,17 @@ fun StatusPill(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(999.dp),
-        color = color.copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.50f))
+        color = color.copy(alpha = if (large) 0.18f else 0.12f),
+        border = BorderStroke(if (large) 1.5.dp else 1.dp, color.copy(alpha = if (large) 0.75f else 0.50f))
     ) {
         Row(
-            modifier = Modifier.padding(
-                horizontal = if (large) 14.dp else 10.dp,
-                vertical = if (large) 8.dp else 5.dp
-            ),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = Modifier
+                .padding(
+                    horizontal = if (large) 14.dp else 10.dp,
+                    vertical = if (large) 10.dp else 5.dp
+                )
+                .then(if (large) Modifier.fillMaxWidth() else Modifier),
+            horizontalArrangement = if (large) Arrangement.Center else Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (dotColor != null) {

@@ -55,7 +55,7 @@ fun AboutScreen(contentPadding: PaddingValues) {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .background(GraphiteBg)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
@@ -127,11 +127,23 @@ fun AboutScreen(contentPadding: PaddingValues) {
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Icon(Icons.Outlined.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(13.dp))
+                    Icon(Icons.Outlined.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(13.dp).padding(top = 1.dp))
                     Text(
                         "Not spyware. Does not run hidden or without your knowledge.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondary
+                    )
+                }
+                ForensicDivider()
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(Icons.Outlined.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(13.dp).padding(top = 1.dp))
+                    Text(
+                        "Monitors PIN, password, and pattern failures only. Face and fingerprint unlock attempts are not captured — Android does not expose biometric failure events to apps.",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondary
                     )

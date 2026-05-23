@@ -23,7 +23,6 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Shield
@@ -157,19 +156,6 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                         }
                     }
                 )
-                ForensicDivider(modifier = Modifier.padding(vertical = 4.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(Icons.Outlined.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp).padding(top = 1.dp))
-                    Text(
-                        text = "Monitors PIN, password, and pattern failures only. Face and fingerprint unlock attempts are not captured — Android does not expose biometric failure events to apps.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary
-                    )
-                }
             }
         }
 

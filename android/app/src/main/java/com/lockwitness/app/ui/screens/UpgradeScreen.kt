@@ -90,7 +90,7 @@ fun UpgradeScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .background(GraphiteBg)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
