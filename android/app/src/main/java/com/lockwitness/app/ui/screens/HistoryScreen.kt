@@ -90,7 +90,7 @@ fun HistoryScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .background(GraphiteBg)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
@@ -241,7 +241,6 @@ private fun EvidenceChip(icon: androidx.compose.ui.graphics.vector.ImageVector, 
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
             .background(MutedChip)
-            .border(1.dp, StrokeSubtle, RoundedCornerShape(6.dp))
             .padding(horizontal = 5.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp)
