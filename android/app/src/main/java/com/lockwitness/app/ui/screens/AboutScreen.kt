@@ -59,83 +59,56 @@ fun AboutScreen(contentPadding: PaddingValues) {
             .background(GraphiteBg)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = "About",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = TextPrimary
+            color = TextPrimary,
+            modifier = Modifier.padding(vertical = 2.dp)
         )
 
-        // Identity card
+        // Version + plan
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        SectionEyebrow("LockWitness")
-                        Text(
-                            text = "v${deviceInfo.appVersion}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                    }
-                    SpecPill(type = if (monetizationState.isPro) PillType.PRO else PillType.PAUSED)
-                }
-                ForensicDivider()
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Android", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-                    Text(deviceInfo.androidVersion, style = MaterialTheme.typography.bodySmall, color = TextPrimary)
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Device", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-                    Text(deviceInfo.deviceModel, style = MaterialTheme.typography.bodySmall, color = TextPrimary)
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Billing", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            Row(
+                modifier = Modifier.padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    SectionEyebrow("LockWitness")
                     Text(
-                        if (monetizationState.billingAvailable) "Available" else "Unavailable",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (monetizationState.billingAvailable) VerifiedGreen else TextSecondary
+                        text = "Version ${deviceInfo.appVersion}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
                     )
                 }
+                SpecPill(type = if (monetizationState.isPro) PillType.PRO else PillType.PAUSED)
             }
         }
 
-        // Trust cards
+        // Privacy commitments
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SectionEyebrow("Privacy Commitments")
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 val commitments = listOf(
-                    Icons.Outlined.Lock to "All evidence is stored locally on your device only.",
+                    Icons.Outlined.Lock to "All evidence stored locally on your device only.",
                     Icons.Outlined.NoPhotography to "No captured media is ever silently transmitted.",
                     Icons.Outlined.GppGood to "SHA-256 hashing provides tamper-evident integrity.",
-                    Icons.Outlined.Shield to "Owner-controlled: you decide when evidence is exported.",
+                    Icons.Outlined.Shield to "You decide when and whether to export evidence.",
                     Icons.Outlined.CheckCircle to "No microphone, contacts, or call-log access."
                 )
                 commitments.forEachIndexed { i, (icon, text) ->
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.Top
                     ) {
-                        Icon(icon, contentDescription = null, tint = VerifiedGreen, modifier = Modifier.size(16.dp))
+                        Icon(icon, contentDescription = null, tint = VerifiedGreen, modifier = Modifier.size(15.dp))
                         Text(text, style = MaterialTheme.typography.bodySmall, color = TextPrimary)
                     }
                     if (i < commitments.lastIndex) ForensicDivider()
@@ -143,23 +116,22 @@ fun AboutScreen(contentPadding: PaddingValues) {
             }
         }
 
-        // Product description
+        // What it does
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 SectionEyebrow("What LockWitness Does")
                 Text(
-                    text = "LockWitness records tamper-evident evidence — photos, video, and GPS location — when someone fails to unlock your device. All evidence stays on your device until you choose to export it.",
+                    text = "Records tamper-evident evidence — photo, video, and GPS — when someone fails to unlock your device. All evidence stays on your device until you choose to export it.",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Outlined.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Outlined.Info, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(13.dp))
                     Text(
-                        "This is not spyware. It does not run hidden or without your knowledge.",
+                        "Not spyware. Does not run hidden or without your knowledge.",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondary
                     )
@@ -167,7 +139,6 @@ fun AboutScreen(contentPadding: PaddingValues) {
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
         BannerAdPlaceholder(state = monetizationState)
     }
 }

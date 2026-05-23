@@ -28,7 +28,6 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PauseCircle
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShieldMoon
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.VerifiedUser
@@ -37,7 +36,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -158,7 +156,7 @@ internal fun DashboardContent(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        DashboardTopBar(onNavigateToSettings = onNavigateToSettings)
+        DashboardTopBar()
         HeroCard(state = state)
         StatusRow(state = state)
         EvidenceModulesGrid(state = state, isPro = monetizationState.isPro)
@@ -176,25 +174,25 @@ internal fun DashboardContent(
 }
 
 @Composable
-private fun DashboardTopBar(onNavigateToSettings: () -> Unit) {
-    Row(
+private fun DashboardTopBar() {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(SurfaceRaised, RoundedCornerShape(12.dp))
             .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        contentAlignment = Alignment.Center
     ) {
-        Icon(Icons.Outlined.ShieldMoon, contentDescription = null, tint = VerifiedGreen, modifier = Modifier.size(22.dp))
-        Text(
-            text = "Lock Witness",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            modifier = Modifier.weight(1f)
-        )
-        IconButton(onClick = onNavigateToSettings, modifier = Modifier.size(36.dp)) {
-            Icon(Icons.Outlined.Settings, contentDescription = "Settings", tint = TextSecondary, modifier = Modifier.size(20.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(Icons.Outlined.ShieldMoon, contentDescription = null, tint = VerifiedGreen, modifier = Modifier.size(22.dp))
+            Text(
+                text = "Lock Witness",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
         }
     }
 }

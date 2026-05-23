@@ -5,7 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.LockOpen
@@ -30,8 +28,6 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.WorkspacePremium
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,14 +53,11 @@ import com.lockwitness.app.data.incident.SecurityIncident
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
 import com.lockwitness.app.monetization.MonetizationRepository
 import com.lockwitness.app.monetization.MonetizationState
-import com.lockwitness.app.monetization.ProFeature
 import com.lockwitness.app.monetization.ProFeatureGate
 import com.lockwitness.app.ui.components.ForensicCard
-import com.lockwitness.app.ui.components.ForensicDivider
 import com.lockwitness.app.ui.components.SectionEyebrow
 import com.lockwitness.app.ui.components.StatusPill
 import com.lockwitness.app.ui.history.IncidentHistoryActions
-import com.lockwitness.app.ui.history.IncidentHistoryMapper
 import com.lockwitness.app.ui.theme.CardSurface
 import com.lockwitness.app.ui.theme.CautionAmber
 import com.lockwitness.app.ui.theme.GraphiteBg
@@ -73,12 +67,9 @@ import com.lockwitness.app.ui.theme.StrokeSubtle
 import com.lockwitness.app.ui.theme.TextPrimary
 import com.lockwitness.app.ui.theme.TextSecondary
 import com.lockwitness.app.ui.theme.VerifiedGreen
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-enum class HistoryFilter { ALL, PHOTOS, VIDEO, LOCATION, EXPORTED, HASHED }
 
 @Composable
 fun HistoryScreen(
@@ -95,17 +86,7 @@ fun HistoryScreen(
     val proFeatureGate = remember { ProFeatureGate() }
     val incidents by repository.getAllOrderedByTimestampDesc().collectAsState(initial = emptyList())
     val visibleIncidents = proFeatureGate.visibleHistory(incidents, monetizationState)
-    var activeFilter by remember { mutableStateOf(HistoryFilter.ALL) }
     val scope = rememberCoroutineScope()
-
-    val filtered = when (activeFilter) {
-        HistoryFilter.ALL -> visibleIncidents
-        HistoryFilter.PHOTOS -> visibleIncidents.filter { it.photoStatus == "SUCCESS" }
-        HistoryFilter.VIDEO -> visibleIncidents.filter { it.videoStatus == "SUCCESS" }
-        HistoryFilter.LOCATION -> visibleIncidents.filter { it.locationStatus == "SUCCESS" }
-        HistoryFilter.EXPORTED -> visibleIncidents.filter { it.shareStatus == "SUCCESS" }
-        HistoryFilter.HASHED -> visibleIncidents.filter { !it.imageSha256.isNullOrBlank() || !it.videoSha256.isNullOrBlank() }
-    }
 
     Column(
         modifier = Modifier
@@ -114,62 +95,25 @@ fun HistoryScreen(
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Header
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Evidence Timeline",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-                Text(
-                    text = if (monetizationState.isPro || incidents.size == visibleIncidents.size) {
-                        "${visibleIncidents.size} incident${if (visibleIncidents.size != 1) "s" else ""}"
-                    } else {
-                        "Showing ${visibleIncidents.size} of ${incidents.size}"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
-            }
-            Icon(Icons.Outlined.FilterList, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(20.dp))
-        }
-
-        // Filter chips
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            HistoryFilter.entries.forEach { filter ->
-                FilterChip(
-                    selected = activeFilter == filter,
-                    onClick = { activeFilter = filter },
-                    label = {
-                        Text(
-                            filter.name.lowercase().replaceFirstChar { it.uppercase() },
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MutedChip,
-                        selectedLabelColor = VerifiedGreen,
-                        containerColor = MutedChip,
-                        labelColor = TextSecondary
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
-                        selected = activeFilter == filter,
-                        borderColor = StrokeSubtle,
-                        selectedBorderColor = VerifiedGreen
-                    )
-                )
-            }
+        Column {
+            Text(
+                text = "Evidence Timeline",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+            Text(
+                text = if (monetizationState.isPro || incidents.size == visibleIncidents.size) {
+                    "${visibleIncidents.size} incident${if (visibleIncidents.size != 1) "s" else ""}"
+                } else {
+                    "Showing ${visibleIncidents.size} of ${incidents.size}"
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary
+            )
         }
 
         // Free upgrade banner
@@ -180,7 +124,7 @@ fun HistoryScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Outlined.WorkspacePremium, contentDescription = null, tint = ProOrange, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Outlined.WorkspacePremium, contentDescription = null, tint = ProOrange, modifier = Modifier.size(18.dp))
                     Text(
                         text = "Free history is limited. Upgrade for full ledger retention.",
                         style = MaterialTheme.typography.bodySmall,
@@ -192,25 +136,16 @@ fun HistoryScreen(
         }
 
         // Incident list or empty state
-        when {
-            filtered.isEmpty() && activeFilter != HistoryFilter.ALL -> {
-                EmptyFilterState(
-                    message = "No incidents match this filter.",
-                    onClear = { activeFilter = HistoryFilter.ALL }
-                )
-            }
-            visibleIncidents.isEmpty() -> {
-                EmptyTimelineCard()
-            }
-            else -> {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    filtered.forEach { incident ->
-                        IncidentLedgerCard(
-                            incident = incident,
-                            onOpen = { onNavigateToDetail(incident.id) },
-                            onDelete = { scope.launch { actions.deleteIncident(incident.id) } }
-                        )
-                    }
+        if (visibleIncidents.isEmpty()) {
+            EmptyTimelineCard()
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                visibleIncidents.forEach { incident ->
+                    IncidentLedgerCard(
+                        incident = incident,
+                        onOpen = { onNavigateToDetail(incident.id) },
+                        onDelete = { scope.launch { actions.deleteIncident(incident.id) } }
+                    )
                 }
             }
         }
@@ -239,22 +174,6 @@ private fun EmptyTimelineCard() {
 }
 
 @Composable
-private fun EmptyFilterState(message: String, onClear: () -> Unit) {
-    ForensicCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(message, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-            Text(
-                text = "Clear Filter",
-                style = MaterialTheme.typography.labelSmall,
-                color = VerifiedGreen,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable(onClick = onClear)
-            )
-        }
-    }
-}
-
-@Composable
 private fun IncidentLedgerCard(
     incident: SecurityIncident,
     onOpen: () -> Unit,
@@ -276,13 +195,12 @@ private fun IncidentLedgerCard(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Thumbnail
         PhotoThumbnailSmall(
             photoPath = incident.photoPath,
-            modifier = Modifier.size(68.dp).clip(RoundedCornerShape(8.dp))
+            modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
         )
 
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -296,12 +214,12 @@ private fun IncidentLedgerCard(
                 if (isHashed) StatusPill(text = "Hashed", color = VerifiedGreen)
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.LockOpen, contentDescription = null, tint = CautionAmber, modifier = Modifier.size(14.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.LockOpen, contentDescription = null, tint = CautionAmber, modifier = Modifier.size(13.dp))
                 Text("Failed Unlock", style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.SemiBold)
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 if (hasPhoto) EvidenceChip(icon = Icons.Outlined.CameraAlt, label = "Photo")
                 if (hasVideo) EvidenceChip(icon = Icons.Outlined.Videocam, label = "Video")
                 if (hasLocation) EvidenceChip(icon = Icons.Outlined.LocationOn, label = "GPS")
@@ -309,7 +227,7 @@ private fun IncidentLedgerCard(
             }
 
             Text(
-                text = "Attempts: ${incident.failedAttemptCount} • ${incident.deviceModel}",
+                text = "Attempts: ${incident.failedAttemptCount}",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextSecondary
             )
@@ -324,11 +242,11 @@ private fun EvidenceChip(icon: androidx.compose.ui.graphics.vector.ImageVector, 
             .clip(RoundedCornerShape(6.dp))
             .background(MutedChip)
             .border(1.dp, StrokeSubtle, RoundedCornerShape(6.dp))
-            .padding(horizontal = 6.dp, vertical = 3.dp),
+            .padding(horizontal = 5.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp)
     ) {
-        Icon(icon, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(11.dp))
+        Icon(icon, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(10.dp))
         Text(label, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
     }
 }
@@ -340,7 +258,7 @@ private fun PhotoThumbnailSmall(photoPath: String?, modifier: Modifier = Modifie
         if (!photoPath.isNullOrBlank()) {
             bitmap = withContext(Dispatchers.IO) {
                 runCatching {
-                    val opts = BitmapFactory.Options().apply { inSampleSize = 4 }
+                    val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = 4 }
                     BitmapFactory.decodeFile(photoPath, opts)?.asImageBitmap()
                 }.getOrNull()
             }
@@ -350,7 +268,7 @@ private fun PhotoThumbnailSmall(photoPath: String?, modifier: Modifier = Modifie
         if (bitmap != null) {
             Image(bitmap = bitmap!!, contentDescription = "Evidence photo", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
         } else {
-            Icon(Icons.Outlined.CameraAlt, contentDescription = null, tint = TextSecondary.copy(alpha = 0.4f), modifier = Modifier.size(26.dp))
+            Icon(Icons.Outlined.CameraAlt, contentDescription = null, tint = TextSecondary.copy(alpha = 0.4f), modifier = Modifier.size(24.dp))
         }
     }
 }

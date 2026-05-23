@@ -30,8 +30,6 @@ import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -81,10 +79,7 @@ import com.lockwitness.app.ui.theme.VerifiedGreen
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(
-    contentPadding: PaddingValues,
-    onNavigateToSetup: () -> Unit = {}
-) {
+fun SettingsScreen(contentPadding: PaddingValues) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val repository = remember(context) { SettingsRepository.create(context) }
@@ -97,30 +92,27 @@ fun SettingsScreen(
     val canUseLocation = proFeatureGate.isAllowed(ProFeature.LocationSnapshot, monetizationState)
 
     var isDeviceAdminActive by remember(context) { mutableStateOf(DeviceAdminStatus.isActive(context)) }
-    var isCameraPermissionGranted by remember(context) {
+    var isCameraGranted by remember(context) {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
     }
-    var isLocationPermissionGranted by remember(context) { mutableStateOf(context.hasLocationPermission()) }
+    var isLocationGranted by remember(context) { mutableStateOf(context.hasLocationPermission()) }
     var showAutoDeleteDialog by remember { mutableStateOf(false) }
     var showStorageDialog by remember { mutableStateOf(false) }
+    var showVideoDurationDialog by remember { mutableStateOf(false) }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        isCameraPermissionGranted = granted
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        isCameraGranted = granted
     }
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { grants ->
-        isLocationPermissionGranted = grants.values.any { it }
+    val locationLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+        isLocationGranted = grants.values.any { it }
     }
 
     DisposableEffect(lifecycleOwner, context) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 isDeviceAdminActive = DeviceAdminStatus.isActive(context)
-                isCameraPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-                isLocationPermissionGranted = context.hasLocationPermission()
+                isCameraGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                isLocationGranted = context.hasLocationPermission()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -133,69 +125,59 @@ fun SettingsScreen(
             .background(GraphiteBg)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = "Settings",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = TextPrimary
+            color = TextPrimary,
+            modifier = Modifier.padding(vertical = 2.dp)
         )
 
-        // PROTECTION section
+        // PROTECTION
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SectionEyebrow("Protection")
-                Spacer(modifier = Modifier.height(10.dp))
-
+                Spacer(modifier = Modifier.height(6.dp))
                 SettingsToggleRow(
                     icon = Icons.Outlined.VerifiedUser,
                     title = "Monitoring",
-                    description = if (isDeviceAdminActive) "Detect failed unlock attempts" else "Requires Device Admin — tap Setup",
+                    description = if (isDeviceAdminActive) "Detect failed unlock attempts" else "Tap to activate Device Admin",
                     checked = settings.masterMonitoringEnabled && isDeviceAdminActive,
                     statusPillText = if (isDeviceAdminActive) "Active" else "Setup needed",
                     statusPillColor = if (isDeviceAdminActive) VerifiedGreen else CautionAmber,
                     onCheckedChange = { enabled ->
                         if (enabled && !isDeviceAdminActive) {
-                            onNavigateToSetup()
+                            context.startActivity(DeviceAdminStatus.activationIntent(context))
                         } else {
                             scope.launch { repository.setMasterMonitoringEnabled(enabled) }
                         }
                     }
                 )
-                ForensicDivider(modifier = Modifier.padding(vertical = 6.dp))
-
-                SettingsChevronRow(
-                    icon = Icons.Outlined.Shield,
-                    title = "Run Setup Wizard",
-                    description = "Grant permissions and activate Device Admin",
-                    onClick = onNavigateToSetup
-                )
             }
         }
 
-        // EVIDENCE CAPTURE section
+        // EVIDENCE CAPTURE
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SectionEyebrow("Evidence Capture")
-                Spacer(modifier = Modifier.height(10.dp))
-
+                Spacer(modifier = Modifier.height(6.dp))
                 SettingsToggleRow(
                     icon = Icons.Outlined.CameraAlt,
                     title = "Capture Photos",
-                    description = if (isCameraPermissionGranted) "Front camera on failed unlock" else "Camera permission required",
+                    description = if (isCameraGranted) "Front camera on failed unlock" else "Camera permission required",
                     checked = settings.photoCaptureEnabled,
                     onCheckedChange = { enabled ->
-                        if (enabled && !isCameraPermissionGranted) {
-                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        if (enabled && !isCameraGranted) {
+                            cameraLauncher.launch(Manifest.permission.CAMERA)
                         } else {
                             scope.launch { repository.setPhotoCaptureEnabled(enabled) }
                         }
                     }
                 )
-                ForensicDivider(modifier = Modifier.padding(vertical = 6.dp))
-
+                ForensicDivider(modifier = Modifier.padding(vertical = 4.dp))
                 SettingsToggleRow(
                     icon = Icons.Outlined.Videocam,
                     title = "Record Video",
@@ -204,57 +186,26 @@ fun SettingsScreen(
                     enabled = canUseVideo,
                     trailingBadge = if (!canUseVideo) "Pro" else null,
                     onCheckedChange = { enabled ->
-                        scope.launch { repository.setVideoCaptureEnabled(enabled) }
-                    }
-                )
-
-                if (canUseVideo) {
-                    ForensicDivider(modifier = Modifier.padding(vertical = 6.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Outlined.Videocam, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(20.dp))
-                        Text("Video Duration", style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            SettingsState.AllowedVideoDurations.forEach { duration ->
-                                FilterChip(
-                                    selected = settings.videoDurationSeconds == duration,
-                                    onClick = { scope.launch { repository.setVideoDurationSeconds(duration) } },
-                                    label = { Text("${duration}s", style = MaterialTheme.typography.labelSmall) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MutedChip,
-                                        selectedLabelColor = VerifiedGreen,
-                                        containerColor = MutedChip,
-                                        labelColor = TextSecondary
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = settings.videoDurationSeconds == duration,
-                                        borderColor = StrokeSubtle,
-                                        selectedBorderColor = VerifiedGreen
-                                    )
-                                )
-                            }
+                        if (enabled) {
+                            showVideoDurationDialog = true
+                        } else {
+                            scope.launch { repository.setVideoCaptureEnabled(false) }
                         }
                     }
-                }
-
-                ForensicDivider(modifier = Modifier.padding(vertical = 6.dp))
-
+                )
+                ForensicDivider(modifier = Modifier.padding(vertical = 4.dp))
                 SettingsToggleRow(
                     icon = Icons.Outlined.Place,
                     title = "Capture Location",
                     description = if (canUseLocation) {
-                        if (isLocationPermissionGranted) "GPS snapshot on failed unlock" else "Location permission required"
+                        if (isLocationGranted) "GPS snapshot on failed unlock" else "Location permission required"
                     } else "Pro feature",
                     checked = settings.locationCaptureEnabled && canUseLocation,
                     enabled = canUseLocation,
                     trailingBadge = if (!canUseLocation) "Pro" else null,
                     onCheckedChange = { enabled ->
-                        if (enabled && !isLocationPermissionGranted) {
-                            locationPermissionLauncher.launch(
+                        if (enabled && !isLocationGranted) {
+                            locationLauncher.launch(
                                 arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
                             )
                         } else {
@@ -265,12 +216,11 @@ fun SettingsScreen(
             }
         }
 
-        // EVIDENCE INTEGRITY section
+        // EVIDENCE INTEGRITY
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SectionEyebrow("Evidence Integrity")
-                Spacer(modifier = Modifier.height(10.dp))
-
+                Spacer(modifier = Modifier.height(6.dp))
                 SettingsToggleRow(
                     icon = Icons.Outlined.Shield,
                     title = "SHA-256 Hashing",
@@ -280,8 +230,7 @@ fun SettingsScreen(
                         scope.launch { repository.setEvidenceHashingEnabled(enabled) }
                     }
                 )
-                ForensicDivider(modifier = Modifier.padding(vertical = 6.dp))
-
+                ForensicDivider(modifier = Modifier.padding(vertical = 4.dp))
                 SettingsToggleRow(
                     icon = Icons.Outlined.Lock,
                     title = "Local Timeline",
@@ -294,12 +243,11 @@ fun SettingsScreen(
             }
         }
 
-        // EVIDENCE STORAGE section
+        // EVIDENCE STORAGE
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SectionEyebrow("Evidence Storage")
-                Spacer(modifier = Modifier.height(10.dp))
-
+                Spacer(modifier = Modifier.height(6.dp))
                 SettingsChevronRow(
                     icon = Icons.Outlined.Delete,
                     title = "Auto Delete Old Evidence",
@@ -307,8 +255,7 @@ fun SettingsScreen(
                     trailingText = if (settings.autoDeleteDays == 0) "Off" else "${settings.autoDeleteDays} days",
                     onClick = { showAutoDeleteDialog = true }
                 )
-                ForensicDivider(modifier = Modifier.padding(vertical = 6.dp))
-
+                ForensicDivider(modifier = Modifier.padding(vertical = 4.dp))
                 SettingsChevronRow(
                     icon = Icons.Outlined.Storage,
                     title = "Storage Usage",
@@ -318,23 +265,73 @@ fun SettingsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
         BannerAdPlaceholder(state = monetizationState)
     }
 
+    // Video duration dialog — shown when video is toggled on
+    if (showVideoDurationDialog) {
+        AlertDialog(
+            onDismissRequest = { showVideoDurationDialog = false },
+            containerColor = com.lockwitness.app.ui.theme.CardSurface,
+            title = { Text("Video Duration", color = TextPrimary) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        "How long should each clip be?",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    SettingsState.AllowedVideoDurations.forEach { duration ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    scope.launch {
+                                        repository.setVideoDurationSeconds(duration)
+                                        repository.setVideoCaptureEnabled(true)
+                                    }
+                                    showVideoDurationDialog = false
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "${duration} seconds",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (settings.videoDurationSeconds == duration) ProOrange else TextPrimary
+                            )
+                            if (settings.videoDurationSeconds == duration) {
+                                Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = ProOrange, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showVideoDurationDialog = false }) {
+                    Text("Cancel", color = TextSecondary)
+                }
+            }
+        )
+    }
+
+    // Auto-delete dialog
     if (showAutoDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showAutoDeleteDialog = false },
-            title = { Text("Auto Delete Evidence", color = TextPrimary) },
             containerColor = com.lockwitness.app.ui.theme.CardSurface,
+            title = { Text("Auto Delete Evidence", color = TextPrimary) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         "Automatically delete evidence older than:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     listOf(0 to "Never (keep all)", 30 to "30 days", 60 to "60 days", 90 to "90 days").forEach { (days, label) ->
                         Row(
                             modifier = Modifier
@@ -368,6 +365,7 @@ fun SettingsScreen(
         )
     }
 
+    // Storage usage dialog
     if (showStorageDialog) {
         val photoDir = remember(context) { java.io.File(context.filesDir, "incident_photos") }
         val videoDir = remember(context) { java.io.File(context.filesDir, "incident_videos") }
@@ -376,8 +374,8 @@ fun SettingsScreen(
         fun Long.toMb(): String = if (this < 1024 * 1024) "${this / 1024} KB" else "${"%.1f".format(this / 1024.0 / 1024.0)} MB"
         AlertDialog(
             onDismissRequest = { showStorageDialog = false },
-            title = { Text("Storage Usage", color = TextPrimary) },
             containerColor = com.lockwitness.app.ui.theme.CardSurface,
+            title = { Text("Storage Usage", color = TextPrimary) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -419,23 +417,14 @@ private fun SettingsToggleRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = if (enabled) HashText else TextSecondary,
-            modifier = Modifier.size(22.dp)
-        )
+        Icon(icon, contentDescription = null, tint = if (enabled) HashText else TextSecondary, modifier = Modifier.size(20.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = TextPrimary)
-                if (trailingBadge != null) {
-                    Text(trailingBadge, style = MaterialTheme.typography.labelSmall, color = ProOrange, fontWeight = FontWeight.SemiBold)
-                }
-                if (statusPillText != null && statusPillColor != null) {
-                    StatusPill(text = statusPillText, color = statusPillColor)
-                }
+                if (trailingBadge != null) Text(trailingBadge, style = MaterialTheme.typography.labelSmall, color = ProOrange, fontWeight = FontWeight.SemiBold)
+                if (statusPillText != null && statusPillColor != null) StatusPill(text = statusPillText, color = statusPillColor)
             }
-            Text(description, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            Text(description, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
         }
         Switch(
             checked = checked,
@@ -471,17 +460,13 @@ private fun SettingsChevronRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(20.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = TextPrimary)
-            if (description != null) {
-                Text(description, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-            }
+            if (description != null) Text(description, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
         }
-        if (trailingText != null) {
-            Text(trailingText, style = MaterialTheme.typography.labelMedium, color = TextSecondary)
-        }
-        Icon(imageVector = Icons.Outlined.ChevronRight, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(18.dp))
+        if (trailingText != null) Text(trailingText, style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(18.dp))
     }
 }
 

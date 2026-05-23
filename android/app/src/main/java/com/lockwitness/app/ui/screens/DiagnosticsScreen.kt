@@ -184,7 +184,7 @@ internal fun DiagnosticsContent(
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = "Diagnostics",
@@ -196,7 +196,7 @@ internal fun DiagnosticsContent(
         // Readiness score card
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -220,7 +220,7 @@ internal fun DiagnosticsContent(
 
         // Runtime tests
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 SectionEyebrow("Runtime Tests")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     DiagTestButton(label = "Photo", icon = Icons.Outlined.CameraAlt, enabled = true, onClick = onTestPhoto, modifier = Modifier.weight(1f))
@@ -246,13 +246,13 @@ internal fun DiagnosticsContent(
 
         // Checks list
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SectionEyebrow("Checks")
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 checks.forEachIndexed { index, check ->
                     DiagCheckRow(check = check)
                     if (index < checks.lastIndex) {
-                        ForensicDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        ForensicDivider(modifier = Modifier.padding(vertical = 5.dp))
                     }
                 }
             }

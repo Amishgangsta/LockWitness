@@ -13,8 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -64,8 +62,9 @@ fun LockWitnessApp() {
                             selected = currentRoute == screen.route,
                             onClick = {
                                 navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
+                                    popUpTo(LockWitnessDestination.Dashboard.route) {
                                         saveState = true
+                                        inclusive = false
                                     }
                                     launchSingleTop = true
                                     restoreState = true
@@ -113,10 +112,7 @@ fun LockWitnessApp() {
                 )
             }
             composable(LockWitnessDestination.Settings.route) {
-                SettingsScreen(
-                    contentPadding = innerPadding,
-                    onNavigateToSetup = { navController.navigate(SETUP_ROUTE) }
-                )
+                SettingsScreen(contentPadding = innerPadding)
             }
             composable(LockWitnessDestination.History.route) {
                 HistoryScreen(
