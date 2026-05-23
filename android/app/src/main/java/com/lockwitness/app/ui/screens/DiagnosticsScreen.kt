@@ -179,7 +179,7 @@ internal fun DiagnosticsContent(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .background(GraphiteBg)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
@@ -196,11 +196,11 @@ internal fun DiagnosticsContent(
         // Readiness score card
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = Modifier.padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                modifier = Modifier.padding(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Outlined.Speed, contentDescription = null, tint = if (passCount == totalCount) VerifiedGreen else CautionAmber, modifier = Modifier.size(28.dp))
+                Icon(Icons.Outlined.Speed, contentDescription = null, tint = if (passCount == totalCount) VerifiedGreen else CautionAmber, modifier = Modifier.size(22.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     SectionEyebrow("Readiness Score")
                     Text(
@@ -220,7 +220,7 @@ internal fun DiagnosticsContent(
 
         // Runtime tests
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 SectionEyebrow("Runtime Tests")
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     DiagTestButton(label = "Photo", icon = Icons.Outlined.CameraAlt, enabled = true, onClick = onTestPhoto, modifier = Modifier.weight(1f))
@@ -248,17 +248,16 @@ internal fun DiagnosticsContent(
         ForensicCard(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SectionEyebrow("Checks")
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 checks.forEachIndexed { index, check ->
                     DiagCheckRow(check = check)
                     if (index < checks.lastIndex) {
-                        ForensicDivider(modifier = Modifier.padding(vertical = 5.dp))
+                        ForensicDivider(modifier = Modifier.padding(vertical = 3.dp))
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 
@@ -306,7 +305,7 @@ private fun DiagCheckRow(check: DiagnosticCheck) {
             Text(check.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = TextPrimary)
             Text(check.detail, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
         }
-        StatusPill(text = pillText, color = pillColor)
+        StatusPill(text = pillText, color = pillColor, large = true)
     }
 }
 

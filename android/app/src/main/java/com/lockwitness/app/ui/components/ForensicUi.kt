@@ -49,8 +49,7 @@ fun ForensicCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurface),
-        border = BorderStroke(1.dp, StrokeSubtle)
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         content()
     }
@@ -70,7 +69,8 @@ fun StatusPill(
     text: String,
     modifier: Modifier = Modifier,
     dotColor: Color? = null,
-    color: Color = HashText
+    color: Color = HashText,
+    large: Boolean = false
 ) {
     Surface(
         modifier = modifier,
@@ -79,7 +79,10 @@ fun StatusPill(
         border = BorderStroke(1.dp, color.copy(alpha = 0.50f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            modifier = Modifier.padding(
+                horizontal = if (large) 14.dp else 10.dp,
+                vertical = if (large) 8.dp else 5.dp
+            ),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
