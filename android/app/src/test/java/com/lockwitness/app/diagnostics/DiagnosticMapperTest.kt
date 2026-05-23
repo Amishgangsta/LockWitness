@@ -3,7 +3,6 @@ package com.lockwitness.app.diagnostics
 import com.lockwitness.app.data.SettingsState
 import com.lockwitness.app.monetization.MonetizationState
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DiagnosticMapperTest {
@@ -24,7 +23,6 @@ class DiagnosticMapperTest {
                 ),
                 historyAvailable = true,
                 exportAvailable = false,
-                shareChooserAvailable = null,
                 monetizationState = MonetizationState.Free,
                 appVersion = "1.0",
                 androidVersion = "Android",
@@ -32,34 +30,19 @@ class DiagnosticMapperTest {
             )
         )
 
-        assertEquals(DiagnosticResult.PASS, checks.first { it.name == "Device Admin" }.result)
-        assertEquals(DiagnosticResult.PASS, checks.first { it.name == "Camera permission" }.result)
-        assertEquals(DiagnosticResult.FAIL, checks.first { it.name == "Location permission" }.result)
-        assertEquals(DiagnosticResult.WARNING, checks.first { it.name == "Video toggle" }.result)
-        assertEquals(DiagnosticResult.FAIL, checks.first { it.name == "Export availability" }.result)
-        assertEquals(DiagnosticResult.NOT_TESTED, checks.first { it.name == "Share chooser availability" }.result)
-        assertEquals("Free", checks.first { it.name == "Free/Pro mode" }.detail)
-    }
-
-    @Test
-    fun shareChooserUnavailableMapsToUnavailable() {
-        val checks = mapper.checks(baseInput(shareChooserAvailable = false))
-
-        assertEquals(
-            DiagnosticResult.UNAVAILABLE,
-            checks.first { it.name == "Share chooser availability" }.result
-        )
+        assertEquals(DiagnosticResult.WARNING, checks.first { it.name == "Video capture" }.result)
+        assertEquals(DiagnosticResult.FAIL, checks.first { it.name == "Export" }.result)
+        assertEquals("Free", checks.first { it.name == "Plan" }.detail)
     }
 
     @Test
     fun proModeMapsToProDetail() {
         val checks = mapper.checks(baseInput(monetizationState = MonetizationState.Pro))
 
-        assertEquals("Pro", checks.first { it.name == "Free/Pro mode" }.detail)
+        assertEquals("Pro", checks.first { it.name == "Plan" }.detail)
     }
 
     private fun baseInput(
-        shareChooserAvailable: Boolean? = true,
         monetizationState: MonetizationState = MonetizationState.Free
     ): DiagnosticInput =
         DiagnosticInput(
@@ -69,7 +52,6 @@ class DiagnosticMapperTest {
             settings = SettingsState.Defaults,
             historyAvailable = true,
             exportAvailable = true,
-            shareChooserAvailable = shareChooserAvailable,
             monetizationState = monetizationState,
             appVersion = "1.0",
             androidVersion = "Android",

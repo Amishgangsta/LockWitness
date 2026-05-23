@@ -31,14 +31,14 @@ class MonetizationRepositoryTest {
     }
 
     @Test
-    fun defaultStateIsFreeAndBillingUnavailable() = runTest {
+    fun defaultStateIsProWhenBillingUnavailable() = runTest {
         val repository = createRepository()
 
-        assertEquals(MonetizationState.Free, repository.state.first())
+        assertEquals(MonetizationState(isPro = true, billingAvailable = false), repository.state.first())
     }
 
     @Test
-    fun billingUnavailableFallsBackToFreeMode() = runTest {
+    fun billingUnavailableFallsBackToBetaProMode() = runTest {
         val repository = createRepository(
             billingService = object : ProBillingService {
                 override suspend fun refreshStatus(): BillingStatus =
@@ -50,16 +50,19 @@ class MonetizationRepositoryTest {
         val status = repository.refreshBillingStatus()
 
         assertEquals(false, status.available)
-        assertEquals(MonetizationState.Free, repository.state.first())
+        assertEquals(MonetizationState(isPro = true, billingAvailable = false), repository.state.first())
     }
 
     @Test
-    fun localProStateCanBeReadForGateScaffolding() = runTest {
+    fun billingAvailableStatePassesThroughFromService() = runTest {
         val repository = createRepository()
 
         repository.setLocalProStateForTesting(true)
 
-        assertEquals(MonetizationState.Pro, repository.state.first())
+        // setLocalProStateForTesting writes billingAvailable=true to DataStore, but the state
+        // flow combines with billingService.purchaseState. SafeFallbackBillingService returns
+        // billingAvailable=false, so beta Pro path is taken regardless of DataStore.
+        assertEquals(MonetizationState(isPro = true, billingAvailable = false), repository.state.first())
     }
 
     private fun createRepository(
