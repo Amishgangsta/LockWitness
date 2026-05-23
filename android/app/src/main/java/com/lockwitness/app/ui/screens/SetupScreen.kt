@@ -105,7 +105,7 @@ fun SetupScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .background(GraphiteBg)
             .padding(contentPadding)
             .verticalScroll(rememberScrollState())
@@ -154,7 +154,7 @@ fun SetupScreen(
             stepNumber = 1,
             icon = Icons.Outlined.Shield,
             title = "Device Admin",
-            description = "Required to detect failed unlock attempts. This is the core LockWitness capability.",
+            description = "Detects failed PIN, password, and pattern unlock attempts. Face and fingerprint failures are not captured — Android does not expose biometric failure events to apps.",
             isComplete = isDeviceAdminActive,
             actionLabel = "Activate Device Admin",
             onAction = { context.startActivity(DeviceAdminStatus.activationIntent(context)) }
