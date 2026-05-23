@@ -1,6 +1,8 @@
 # LockWitness Play Store Listing Draft
 
-This draft is for Play Store review preparation and must be reviewed before submission. Confirm all prices match live Play Console product configuration before publishing.
+This draft is for Play Store review preparation. Confirm all prices match live Play Console product configuration before publishing.
+
+---
 
 ## App Name
 
@@ -8,47 +10,52 @@ LockWitness
 
 ## Short Description
 
-Owner-controlled failed unlock evidence recorder with local history, export, and Pro plans.
+Owner-controlled failed unlock evidence recorder. Photo, video, GPS, and local export.
 
 ## Full Description
 
-LockWitness helps Android device owners record evidence when someone fails to unlock their device. The app is local-first, permission-based, and built around clear user controls.
+LockWitness is a professional-grade evidence recorder for Android device owners. When someone fails to unlock your phone, LockWitness automatically captures front-camera photo, optional video, and GPS coordinates — then stores everything locally with SHA-256 hashes for tamper-evident integrity.
 
 **What LockWitness does:**
 
-- Monitors failed unlock attempts using Device Admin — enabled only after your explicit approval.
-- Keeps a local timeline of failed unlock incidents.
-- Optionally captures front-camera photo evidence.
-- Optionally captures short front-camera video evidence (no audio recording).
-- Optionally records location snapshot metadata.
-- Lets you review incident details: module statuses, file paths, SHA-256 hashes, and device metadata.
-- Lets you export local evidence packages through explicit user action (ZIP with photos, CSV, hashes).
-- Lets you share export packages through Android's standard chooser — you pick the destination.
+- Activates via Device Admin — only after your explicit approval.
+- Records front-camera photo evidence on every failed unlock attempt.
+- Optionally records short front-camera video clips (no audio).
+- Optionally records GPS location metadata at the time of the attempt.
+- Maintains a local incident timeline with full detail for each event.
+- Calculates SHA-256 hashes for every captured file — verifiable forensic integrity.
+- Lets you export evidence as a ZIP package (photos, CSV, hashes) by explicit user action.
+- Lets you share export packages via Android's standard chooser — you choose the destination, every time.
 
 **Your device. Your evidence. Your control.**
 
-Major evidence modules can be enabled or disabled independently in Settings. Camera and location use require Android runtime permissions. Export and share actions are always user-initiated.
+Every evidence module is independently toggleable. Camera and location use require Android runtime permissions you grant consciously. Nothing is transmitted automatically — ever.
 
-**Free and Pro plans:**
+**Try free for 7 days. Then go Pro.**
 
-The Free plan includes failed unlock monitoring, photo capture, and the last 10 incidents — available at no cost.
+LockWitness offers a 7-day trial at the base experience level so you can evaluate the app before committing. Trial includes: failed-unlock monitoring, photo capture, and the last 10 incidents.
 
-LockWitness Pro unlocks:
-- Full unlimited incident history
+LockWitness Pro unlocks the full system:
+- Unlimited incident history
 - Video capture
 - GPS location snapshots
 - ZIP + SHA-256 export
-- Advanced diagnostics and sharing
+- Advanced diagnostics
+- Share chooser integration
 - Ad-free experience
 
-Pro is available as:
-- **Pro Monthly** — $2.99/month (auto-renewing)
-- **Pro Annual** — $19.99/year (auto-renewing; save ~44% vs monthly)
-- **Lifetime Pro** — $19.99 one-time (introductory founder price; increases to $39.99 after launch promo)
+**Pro plans:**
+- **Monthly** — $2.99/month (auto-renewing)
+- **Annual** — $19.99/year (auto-renewing; ~44% vs monthly)
+- **Lifetime** — $39.99 one-time
 
-Subscriptions automatically renew unless cancelled at least 24 hours before the end of the billing period. Manage or cancel anytime in your Google Play account settings.
+Subscriptions automatically renew unless cancelled at least 24 hours before the end of the billing period. Manage or cancel anytime in Google Play account settings.
 
-**LockWitness is not spyware.** It is designed for the owner of the device where it is installed. Evidence is stored locally and is not silently transmitted anywhere.
+**Important:** LockWitness monitors PIN, password, and pattern failures only. Face and fingerprint unlock attempts are not captured — Android does not expose biometric failure events to third-party apps.
+
+**LockWitness is not spyware.** It is designed for the owner of the device where it is installed. Evidence is stored in app-private local storage and is not silently transmitted to anyone.
+
+---
 
 ## Suggested Category
 
@@ -56,46 +63,52 @@ Tools
 
 ## Content Rating
 
-For all audiences (no mature content; intended for device owners).
+For all audiences — no mature content; intended for device owners.
 
 ## Content Notes
 
-LockWitness is intended for use by the owner of the device where it is installed. Screenshots and in-app copy show the app dashboard, settings toggles, permission explanations, diagnostics, history, incident detail, export flow, and upgrade screen. Use sample data that is clearly synthetic and does not identify a real person.
+LockWitness is intended for use by the owner of the device where it is installed. Screenshots and in-app copy show the app dashboard, settings toggles, permission explanations, diagnostics, history, incident detail, export flow, and upgrade screen. Use sample data that is clearly synthetic.
+
+---
 
 ## Screenshot Plan
 
-Recommended screenshots:
+1. Dashboard — monitoring armed, "Digital Witness" status card.
+2. Settings — independent feature toggles.
+3. History — incident timeline with sample records.
+4. Incident detail — statuses, SHA-256 hashes, device metadata.
+5. Diagnostics — system readiness checks with PASS/PASS/PASS results.
+6. Export flow — ZIP package confirmation.
+7. Upgrade screen — Pro plan comparison and pricing.
+8. About screen — privacy commitments and biometric notice.
 
-1. Dashboard with monitoring status active.
-2. Settings showing independent toggles.
-3. Device Admin permission explanation (Settings or onboarding flow).
-4. History screen with sample incident records.
-5. Incident detail screen showing statuses, hashes, and device metadata.
-6. Diagnostics checklist with PASS results.
-7. Export or share chooser flow.
-8. Upgrade / Pro plans screen showing feature comparison and pricing.
+---
 
-## What's New (v1.0 initial release)
+## What's New (v1.0 — Initial Release)
 
 - Owner-controlled failed unlock monitoring via Device Admin
-- Photo and video evidence capture (front camera, no audio)
+- Front-camera photo and video evidence capture (no audio)
 - GPS location snapshot metadata
-- Local incident history with SHA-256 hashes
-- User-initiated ZIP export with metadata and hashes
+- Local incident history with full detail
+- SHA-256 tamper-evident hashing for all captured files
+- User-initiated ZIP export with metadata, CSV, and hashes
 - Android share chooser integration
-- Advanced diagnostics screen
-- Free plan with core monitoring; Pro plans with full history, video, location, export, and ad-free experience
+- Advanced diagnostics screen with readiness scoring
+- 7-day trial; Pro plans: $2.99/mo · $19.99/yr · $39.99 lifetime
+
+---
 
 ## Store Listing Review Checklist
 
-- [ ] Confirm app name is 30 characters or fewer.
-- [ ] Confirm short description is 80 characters or fewer.
-- [ ] Confirm screenshots match the actual app behavior.
-- [ ] Confirm all permission uses are explained in the listing and privacy policy.
-- [ ] Confirm Pro pricing figures match live Play Console product configuration.
-- [ ] Confirm subscription auto-renewal and cancellation disclosures are present.
-- [ ] Confirm the Lifetime Pro price change (founder → standard) is disclosed.
-- [ ] Confirm privacy policy URL is live and resolves before submission.
-- [ ] Confirm Data safety form answers match the release build.
-- [ ] Confirm no production ad or billing configuration is missing from Play Console.
-- [ ] Confirm no network transfer claim is made unless implemented and disclosed.
+- [ ] App name is 30 characters or fewer.
+- [ ] Short description is 80 characters or fewer.
+- [ ] Screenshots match actual app UI (Phase 18 Crimson Forensic theme).
+- [ ] All permission uses explained in listing and privacy policy.
+- [ ] Pro pricing ($2.99/mo, $19.99/yr, $39.99 lifetime) matches live Play Console products.
+- [ ] Subscription auto-renewal and cancellation disclosures present.
+- [ ] 7-day trial terms are disclosed (trial is base level, not Pro).
+- [ ] Biometric limitation disclosed (PIN/password/pattern only).
+- [ ] Privacy policy URL is live and resolves before submission.
+- [ ] Data safety form answers match the release build.
+- [ ] No production ad or billing configuration missing from Play Console.
+- [ ] No network transfer claim made unless implemented and disclosed.
