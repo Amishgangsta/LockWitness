@@ -1,27 +1,40 @@
 package com.lockwitness.app.ui.screens
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BrokenImage
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -29,6 +42,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -36,6 +52,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 import com.lockwitness.app.ui.theme.LWActionOrange
 import com.lockwitness.app.ui.theme.LWBackground
 import com.lockwitness.app.ui.theme.LWPanel
@@ -211,6 +230,7 @@ internal fun HistoryContent(
         when {
             selectedIncident != null -> IncidentDetailCard(
                 detail = mapper.toDetail(selectedIncident),
+                summary = mapper.toSummary(selectedIncident),
                 onBack = onBackToTimeline,
                 onDelete = { onDeleteIncident(selectedIncident.id) },
                 onExport = { onExportIncident(selectedIncident) },
@@ -336,57 +356,90 @@ private fun IncidentSummaryCard(
     onOpen: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
             .background(LWPanel)
             .border(1.dp, Color(0xFF1F2937), RoundedCornerShape(10.dp))
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+            .clickable(onClick = onOpen)
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = summary.timestamp,
-            style = MaterialTheme.typography.titleSmall,
-            color = LWTextPrimary,
-            fontWeight = FontWeight.SemiBold
+        PhotoThumbnail(
+            photoPath = summary.photoPath,
+            modifier = Modifier.size(72.dp).clip(RoundedCornerShape(8.dp))
         )
-        Text(
-            text = "Trigger: ${summary.triggerType}  •  Attempts: ${summary.failedAttemptCount}",
-            style = MaterialTheme.typography.bodySmall,
-            color = LWTextSecondary
-        )
-        StatusChips(summary)
-        IndicatorRow(summary)
-        Spacer(modifier = Modifier.height(2.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            HistoryOutlinedChip(text = "Details", onClick = onOpen)
-            HistoryOutlinedChip(text = "Delete", onClick = onDelete)
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = summary.timestamp,
+                style = MaterialTheme.typography.labelSmall,
+                color = LWTextSecondary
+            )
+            Text(
+                text = "Failed unlock attempt",
+                style = MaterialTheme.typography.bodyMedium,
+                color = LWTextPrimary,
+                fontWeight = FontWeight.SemiBold
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (summary.hasPhoto) EvidenceIcon(Icons.Outlined.CameraAlt, "Photo")
+                if (summary.hasVideo) EvidenceIcon(Icons.Outlined.Videocam, "Video")
+                if (summary.hasLocation) EvidenceIcon(Icons.Outlined.Place, "Location")
+            }
+        }
+        HistoryOutlinedChip(text = "Delete", onClick = onDelete)
+    }
+}
+
+@Composable
+private fun EvidenceIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        Icon(icon, contentDescription = label, tint = LWTextSecondary, modifier = Modifier.size(14.dp))
+        Text(label, style = MaterialTheme.typography.labelSmall, color = LWTextSecondary)
+    }
+}
+
+@Composable
+private fun PhotoThumbnail(photoPath: String?, modifier: Modifier = Modifier) {
+    var bitmap by remember(photoPath) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(photoPath) {
+        if (!photoPath.isNullOrBlank()) {
+            bitmap = withContext(Dispatchers.IO) {
+                runCatching {
+                    val opts = BitmapFactory.Options().apply { inSampleSize = 4 }
+                    BitmapFactory.decodeFile(photoPath, opts)?.asImageBitmap()
+                }.getOrNull()
+            }
+        }
+    }
+    Box(
+        modifier = modifier.background(Color(0xFF0D1929)),
+        contentAlignment = Alignment.Center
+    ) {
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap!!,
+                contentDescription = "Evidence photo",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Outlined.CameraAlt,
+                contentDescription = null,
+                tint = LWTextSecondary.copy(alpha = 0.4f),
+                modifier = Modifier.size(28.dp)
+            )
         }
     }
 }
 
 @Composable
-private fun StatusChips(summary: IncidentSummaryUi) {
-    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-        Text("Photo: ${summary.photoStatus}", style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
-        Text("Video: ${summary.videoStatus}", style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
-        Text("Location: ${summary.locationStatus}", style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
-    }
-}
-
-@Composable
-private fun IndicatorRow(summary: IncidentSummaryUi) {
-    Text(
-        text = "Photo ${summary.hasPhoto.yesNo()}  Video ${summary.hasVideo.yesNo()}  Location ${summary.hasLocation.yesNo()}",
-        style = MaterialTheme.typography.bodySmall,
-        color = LWTextSecondary
-    )
-}
-
-@Composable
 private fun IncidentDetailCard(
     detail: IncidentDetailUi,
+    summary: IncidentSummaryUi,
     onBack: () -> Unit,
     onDelete: () -> Unit,
     onExport: () -> Unit,
@@ -415,13 +468,52 @@ private fun IncidentDetailCard(
             }
             HistoryOutlinedChip(text = "Back", onClick = onBack)
         }
-        DetailField("Trigger", detail.triggerType)
+
+        // Photo evidence — full width if captured
+        if (!summary.photoPath.isNullOrBlank() && File(summary.photoPath).exists()) {
+            PhotoFullView(photoPath = summary.photoPath)
+        } else if (summary.hasPhoto) {
+            Box(
+                modifier = Modifier.fillMaxWidth().height(120.dp)
+                    .clip(RoundedCornerShape(8.dp)).background(Color(0xFF0D1929)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Outlined.BrokenImage, contentDescription = null, tint = LWTextSecondary.copy(alpha = 0.4f), modifier = Modifier.size(40.dp))
+                Text("Photo file unavailable", style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
+            }
+        }
+
+        // Video evidence indicator
+        if (summary.hasVideo) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("VIDEO", style = MaterialTheme.typography.labelSmall, color = Color(0xFF2A6FD6), fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color(0xFF0D1929)).padding(12.dp)) {
+                    Icon(Icons.Outlined.Videocam, contentDescription = null, tint = LWTextSecondary, modifier = Modifier.size(22.dp))
+                    Text("Video captured — use Export to access file", style = MaterialTheme.typography.bodySmall, color = LWTextSecondary)
+                }
+            }
+        }
+
+        // Location evidence
+        if (summary.hasLocation && summary.latitude != null && summary.longitude != null) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("LOCATION", style = MaterialTheme.typography.labelSmall, color = Color(0xFF2A6FD6), fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color(0xFF0D1929)).padding(12.dp)) {
+                    Icon(Icons.Outlined.Place, contentDescription = null, tint = LWTextSecondary, modifier = Modifier.size(22.dp))
+                    Column {
+                        Text("${"%.6f".format(summary.latitude)}, ${"%.6f".format(summary.longitude)}",
+                            style = MaterialTheme.typography.bodySmall, color = LWTextPrimary, fontWeight = FontWeight.Medium)
+                        detail.locationFields.firstOrNull { it.first == "Accuracy" }?.let {
+                            Text("Accuracy: ${it.second}", style = MaterialTheme.typography.labelSmall, color = LWTextSecondary)
+                        }
+                    }
+                }
+            }
+        }
+
         DetailField("Failed attempts", detail.failedAttemptCount)
-        DetailSection("Settings", detail.settingsSnapshot)
-        DetailSection("Device", detail.deviceMetadata)
-        DetailMediaSection(detail.mediaFields)
-        DetailSection("Location", detail.locationFields)
-        DetailSection("Hashes", detail.hashFields)
         DetailSection("Module statuses", detail.statusFields)
         DetailField("Notes", detail.notes)
         Spacer(modifier = Modifier.height(2.dp))
@@ -439,13 +531,19 @@ private fun IncidentDetailCard(
 }
 
 @Composable
-private fun DetailMediaSection(fields: List<Pair<String, String>>) {
-    if (fields.isEmpty()) {
-        DetailSection("Media", listOf("Stored files" to "No photo or video path recorded."))
-    } else {
-        DetailSection(
-            title = "Media",
-            fields = fields + ("Preview" to "Safe fallback: local file path/status shown; runtime media rendering requires device test.")
+private fun PhotoFullView(photoPath: String) {
+    var bitmap by remember(photoPath) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(photoPath) {
+        bitmap = withContext(Dispatchers.IO) {
+            runCatching { BitmapFactory.decodeFile(photoPath)?.asImageBitmap() }.getOrNull()
+        }
+    }
+    if (bitmap != null) {
+        Image(
+            bitmap = bitmap!!,
+            contentDescription = "Evidence photo",
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
         )
     }
 }

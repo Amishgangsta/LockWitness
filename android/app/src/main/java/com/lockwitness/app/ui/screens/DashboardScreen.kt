@@ -602,9 +602,6 @@ private fun ProToolsCard(onNavigateToSettings: () -> Unit) {
                     color = LWTextSecondary
                 )
             }
-            TextButton(onClick = onNavigateToSettings) {
-                Text("Access Pro Tools Here", color = LockWitnessPrimary)
-            }
         }
     }
 }

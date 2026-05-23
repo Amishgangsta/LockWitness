@@ -14,8 +14,8 @@ enum class LockWitnessDestination(
     val icon: ImageVector
 ) {
     Dashboard("dashboard", "Home", Icons.Outlined.Home),
-    Settings("settings", "Settings", Icons.Outlined.Settings),
     History("history", "History", Icons.Outlined.History),
+    Settings("settings", "Settings", Icons.Outlined.Settings),
     Diagnostics("diagnostics", "Diagnostic", Icons.Outlined.MonitorHeart),
     About("about", "About", Icons.Outlined.Info)
 }

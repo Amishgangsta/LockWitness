@@ -31,6 +31,8 @@ import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
@@ -42,6 +44,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -120,6 +123,8 @@ fun SettingsScreen(contentPadding: PaddingValues) {
     var testPhotoStatus by remember { mutableStateOf("") }
     var testVideoStatus by remember { mutableStateOf("") }
     var testLocationStatus by remember { mutableStateOf("") }
+    var showAutoDeleteDialog by remember { mutableStateOf(false) }
+    var showStorageDialog by remember { mutableStateOf(false) }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -263,14 +268,16 @@ fun SettingsScreen(contentPadding: PaddingValues) {
                     icon = Icons.Outlined.Delete,
                     title = "Auto Delete Old Evidence",
                     description = "Keep storage optimized",
-                    trailingText = "Off"
+                    trailingText = if (settings.autoDeleteDays == 0) "Off" else "${settings.autoDeleteDays} days",
+                    onClick = { showAutoDeleteDialog = true }
                 )
                 SettingsDivider()
 
                 SettingsChevronRow(
                     icon = Icons.Outlined.Storage,
                     title = "Storage Usage",
-                    description = "View storage usage details"
+                    description = "View storage usage details",
+                    onClick = { showStorageDialog = true }
                 )
             }
         }
@@ -393,6 +400,83 @@ fun SettingsScreen(contentPadding: PaddingValues) {
         Spacer(modifier = Modifier.height(4.dp))
         BannerAdPlaceholder(state = monetizationState)
     }
+
+    if (showAutoDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showAutoDeleteDialog = false },
+            title = { Text("Auto Delete Evidence", color = MaterialTheme.colorScheme.onSurface) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        "Automatically delete evidence older than:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    listOf(0 to "Never (keep all)", 30 to "30 days", 60 to "60 days", 90 to "90 days").forEach { (days, label) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    scope.launch { repository.setAutoDeleteDays(days) }
+                                    showAutoDeleteDialog = false
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (settings.autoDeleteDays == days) LWActionOrange else MaterialTheme.colorScheme.onSurface
+                            )
+                            if (settings.autoDeleteDays == days) {
+                                Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = LWActionOrange, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showAutoDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showStorageDialog) {
+        val photoDir = remember(context) { java.io.File(context.filesDir, "incident_photos") }
+        val videoDir = remember(context) { java.io.File(context.filesDir, "incident_videos") }
+        val photoBytes = remember(photoDir) { photoDir.walkTopDown().filter { it.isFile }.sumOf { it.length() } }
+        val videoBytes = remember(videoDir) { videoDir.walkTopDown().filter { it.isFile }.sumOf { it.length() } }
+        fun Long.toMb(): String = if (this < 1024 * 1024) "${this / 1024} KB" else "${"%.1f".format(this / 1024.0 / 1024.0)} MB"
+        AlertDialog(
+            onDismissRequest = { showStorageDialog = false },
+            title = { Text("Storage Usage", color = MaterialTheme.colorScheme.onSurface) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Photos", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(photoBytes.toMb(), style = MaterialTheme.typography.bodyMedium, color = LWActionOrange)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Videos", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(videoBytes.toMb(), style = MaterialTheme.typography.bodyMedium, color = LWActionOrange)
+                    }
+                    HorizontalDivider(color = LockWitnessBorder)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Total", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text((photoBytes + videoBytes).toMb(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = LWActionOrange)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showStorageDialog = false }) { Text("Done") }
+            }
+        )
+    }
 }
 
 @Composable
@@ -472,11 +556,13 @@ private fun SettingsChevronRow(
     icon: ImageVector,
     title: String,
     description: String? = null,
-    trailingText: String? = null
+    trailingText: String? = null,
+    onClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)

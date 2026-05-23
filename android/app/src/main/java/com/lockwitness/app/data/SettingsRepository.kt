@@ -26,11 +26,13 @@ data class SettingsState(
     val localTimelineEnabled: Boolean = true,
     val emailAlertEnabled: Boolean = false,
     val shareAlertEnabled: Boolean = false,
-    val evidenceHashingEnabled: Boolean = true
+    val evidenceHashingEnabled: Boolean = true,
+    val autoDeleteDays: Int = 0
 ) {
     companion object {
         val Defaults = SettingsState()
         val AllowedVideoDurations = listOf(5, 10, 15, 30)
+        val AllowedAutoDeleteDays = listOf(0, 30, 60, 90)
     }
 }
 
@@ -57,7 +59,8 @@ class SettingsRepository(
                 localTimelineEnabled = preferences[Keys.LocalTimeline] ?: SettingsState.Defaults.localTimelineEnabled,
                 emailAlertEnabled = preferences[Keys.EmailAlert] ?: SettingsState.Defaults.emailAlertEnabled,
                 shareAlertEnabled = preferences[Keys.ShareAlert] ?: SettingsState.Defaults.shareAlertEnabled,
-                evidenceHashingEnabled = preferences[Keys.EvidenceHashing] ?: SettingsState.Defaults.evidenceHashingEnabled
+                evidenceHashingEnabled = preferences[Keys.EvidenceHashing] ?: SettingsState.Defaults.evidenceHashingEnabled,
+                autoDeleteDays = preferences[Keys.AutoDeleteDays] ?: SettingsState.Defaults.autoDeleteDays
             )
         }
 
@@ -69,6 +72,12 @@ class SettingsRepository(
     suspend fun setEmailAlertEnabled(enabled: Boolean) = update(Keys.EmailAlert, enabled)
     suspend fun setShareAlertEnabled(enabled: Boolean) = update(Keys.ShareAlert, enabled)
     suspend fun setEvidenceHashingEnabled(enabled: Boolean) = update(Keys.EvidenceHashing, enabled)
+
+    suspend fun setAutoDeleteDays(days: Int) {
+        dataStore.edit { preferences ->
+            preferences[Keys.AutoDeleteDays] = if (days in SettingsState.AllowedAutoDeleteDays) days else 0
+        }
+    }
 
     suspend fun setVideoDurationSeconds(seconds: Int) {
         dataStore.edit { preferences ->
@@ -95,6 +104,7 @@ class SettingsRepository(
         val EmailAlert = booleanPreferencesKey("email_alert_enabled")
         val ShareAlert = booleanPreferencesKey("share_alert_enabled")
         val EvidenceHashing = booleanPreferencesKey("evidence_hashing_enabled")
+        val AutoDeleteDays = intPreferencesKey("auto_delete_days")
     }
 
     companion object {

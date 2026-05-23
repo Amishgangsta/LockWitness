@@ -179,10 +179,6 @@ internal fun DiagnosticsContent(
     onTestLocation: () -> Unit,
     onTestExport: () -> Unit
 ) {
-    val passCount = checks.count { it.result == DiagnosticResult.PASS }
-    val failCount = checks.count { it.result == DiagnosticResult.FAIL }
-    val allClear = failCount == 0
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -192,38 +188,6 @@ internal fun DiagnosticsContent(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // System status summary card
-        ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = true) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(18.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = if (allClear) Icons.Outlined.CheckCircle else Icons.Outlined.Warning,
-                    contentDescription = null,
-                    tint = if (allClear) LWSuccessGreen else LockWitnessWarning,
-                    modifier = Modifier.size(32.dp)
-                )
-                Column(modifier = Modifier.weight(1f)) {
-                    SectionEyebrow("System Status")
-                    Text(
-                        text = if (allClear) "All Systems Normal" else "$failCount issue${if (failCount != 1) "s" else ""} detected",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "$passCount of ${checks.size} checks passed",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = LockWitnessTextSecondary
-                    )
-                }
-            }
-        }
-
         // Diagnostic checks
         ForensicCard(modifier = Modifier.fillMaxWidth(), elevated = false) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {

@@ -18,7 +18,11 @@ data class IncidentSummaryUi(
     val shareStatus: String,
     val hasPhoto: Boolean,
     val hasVideo: Boolean,
-    val hasLocation: Boolean
+    val hasLocation: Boolean,
+    val photoPath: String?,
+    val videoPath: String?,
+    val latitude: Double?,
+    val longitude: Double?
 )
 
 data class IncidentDetailUi(
@@ -51,7 +55,11 @@ class IncidentHistoryMapper(
             shareStatus = incident.shareStatus,
             hasPhoto = !incident.photoPath.isNullOrBlank(),
             hasVideo = !incident.videoPath.isNullOrBlank(),
-            hasLocation = incident.latitude != null && incident.longitude != null
+            hasLocation = incident.latitude != null && incident.longitude != null,
+            photoPath = incident.photoPath,
+            videoPath = incident.videoPath,
+            latitude = incident.latitude,
+            longitude = incident.longitude
         )
 
     fun toDetail(incident: SecurityIncident): IncidentDetailUi =

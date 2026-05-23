@@ -25,14 +25,10 @@ class MonetizationRepository(
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         },
         billingService.purchaseState
-    ) { preferences, billingState ->
-        if (billingState.billingAvailable) {
-            billingState
-        } else {
-            // Billing not yet connected — grant Pro access for beta testing.
-            // When Play Billing goes live, billingAvailable becomes true and this branch is bypassed.
-            MonetizationState(isPro = true, billingAvailable = false)
-        }
+    ) { _, billingState ->
+        // Beta override: Pro granted to all users until Play Billing subscriptions are live.
+        // To enable real billing gating, replace this with: if (billingState.billingAvailable) billingState else MonetizationState(isPro = false, billingAvailable = false)
+        MonetizationState(isPro = true, billingAvailable = billingState.billingAvailable)
     }
 
     suspend fun refreshBillingStatus(): BillingStatus {
