@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -30,6 +31,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -98,10 +100,53 @@ fun SetupScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    var showDeviceAdminExplanation by remember { mutableStateOf(false) }
+
     val steps = listOf(isDeviceAdminActive, isCameraGranted, isLocationGranted)
     val completedCount = steps.count { it }
     val progress = completedCount / steps.size.toFloat()
     val allDone = steps.all { it }
+
+    if (showDeviceAdminExplanation) {
+        AlertDialog(
+            onDismissRequest = { showDeviceAdminExplanation = false },
+            icon = { Icon(Icons.Outlined.Shield, contentDescription = null) },
+            title = { Text("Why Lock Witness needs Device Admin") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Android requires Device Admin permission to notify Lock Witness when an incorrect PIN, password, or pattern is entered.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    val points = listOf(
+                        "Lock Witness does not erase your phone.",
+                        "Lock Witness does not lock your phone.",
+                        "Lock Witness does not monitor calls, contacts, microphone, or messages.",
+                        "You can disable Device Admin at any time in Android Settings."
+                    )
+                    points.forEach { point ->
+                        Text("• $point", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeviceAdminExplanation = false
+                        context.startActivity(DeviceAdminStatus.activationIntent(context))
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = VerifiedGreen, contentColor = TextPrimary)
+                ) {
+                    Text("Continue to System Settings", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeviceAdminExplanation = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -142,7 +187,7 @@ fun SetupScreen(
                     trackColor = StrokeSubtle
                 )
                 Text(
-                    text = if (allDone) "All permissions granted. LockWitness is ready." else "Complete the steps below to enable evidence capture.",
+                    text = if (allDone) "All permissions granted. Lock Witness is ready." else "Complete the steps below to enable evidence capture.",
                     style = MaterialTheme.typography.bodySmall,
                     color = if (allDone) VerifiedGreen else TextSecondary
                 )
@@ -157,7 +202,7 @@ fun SetupScreen(
             description = "Detects failed PIN, password, and pattern unlock attempts. Face and fingerprint failures are not captured — Android does not expose biometric failure events to apps.",
             isComplete = isDeviceAdminActive,
             actionLabel = "Activate Device Admin",
-            onAction = { context.startActivity(DeviceAdminStatus.activationIntent(context)) }
+            onAction = { showDeviceAdminExplanation = true }
         )
 
         // Step 2: Camera

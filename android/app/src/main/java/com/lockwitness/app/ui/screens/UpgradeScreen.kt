@@ -102,7 +102,7 @@ fun UpgradeScreen(
             Icon(Icons.Outlined.WorkspacePremium, contentDescription = null, tint = ProOrange, modifier = Modifier.size(28.dp))
             Column {
                 Text(
-                    text = "LockWitness Pro",
+                    text = "Lock Witness Pro",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
@@ -126,7 +126,7 @@ fun UpgradeScreen(
                     "GPS location snapshot",
                     "ZIP + SHA-256 forensic export",
                     "Advanced diagnostics and sharing",
-                    "Ad-free experience"
+                    "SHA-256 forensic export with full integrity verification"
                 )
                 features.forEachIndexed { i, feature ->
                     Row(
@@ -180,7 +180,7 @@ fun UpgradeScreen(
             onClick = onNavigateBack,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Continue with Free", color = TextSecondary, style = MaterialTheme.typography.labelMedium)
+            Text("Not now", color = TextSecondary, style = MaterialTheme.typography.labelMedium)
         }
 
         purchaseMessage?.let { msg ->
@@ -204,7 +204,7 @@ private fun PlanCard(
     onPurchase: () -> Unit
 ) {
     val isBestValue = product.badge?.contains("Best Value") == true
-    val isFounder = product.badge == null && product.note != null
+    val isFounder = product.badge?.contains("Founder") == true
     val pillType = when {
         isBestValue -> PillType.BEST_VALUE
         isFounder -> PillType.FOUNDER
@@ -290,7 +290,7 @@ private fun ProAlreadyActiveScreen(
         Icon(Icons.Outlined.WorkspacePremium, contentDescription = null, tint = ProOrange, modifier = Modifier.size(48.dp))
         Text("You're on Pro", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
         Text(
-            "All features are unlocked. Thank you for supporting LockWitness.",
+            "All features are unlocked. Thank you for supporting Lock Witness.",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = TextSecondary

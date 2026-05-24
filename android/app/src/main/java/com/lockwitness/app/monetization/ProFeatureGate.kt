@@ -8,12 +8,8 @@ class ProFeatureGate(
             ProFeature.UnlimitedHistory,
             ProFeature.VideoCapture,
             ProFeature.LocationSnapshot,
-            ProFeature.ExportZip,
-            ProFeature.NoAds -> state.isPro
+            ProFeature.ExportZip -> state.isPro
         }
-
-    fun shouldShowAds(state: MonetizationState): Boolean =
-        !isAllowed(ProFeature.NoAds, state)
 
     fun <T> visibleHistory(items: List<T>, state: MonetizationState): List<T> =
         if (isAllowed(ProFeature.UnlimitedHistory, state)) {

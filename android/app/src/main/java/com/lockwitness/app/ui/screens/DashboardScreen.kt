@@ -328,7 +328,7 @@ private fun PlanCard(isPro: Boolean, onNavigateToUpgrade: () -> Unit) {
                 Icon(Icons.Outlined.WorkspacePremium, contentDescription = null, tint = ProOrange, modifier = Modifier.size(24.dp))
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("Pro: video + full history", style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                    Text("GPS snapshots, advanced export, ad-free", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                    Text("GPS snapshots, full history, advanced export", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
                 }
                 Button(
                     onClick = onNavigateToUpgrade,

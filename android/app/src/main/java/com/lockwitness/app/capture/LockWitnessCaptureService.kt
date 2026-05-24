@@ -105,7 +105,7 @@ class LockWitnessCaptureService : Service() {
         }
         NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("LockWitness")
+            .setContentTitle("Lock Witness")
             .setContentText("Recording failed unlock event")
             .setOngoing(true)
             .setSilent(true)

@@ -7,8 +7,7 @@ enum class ProFeature {
     UnlimitedHistory,
     VideoCapture,
     LocationSnapshot,
-    ExportZip,
-    NoAds
+    ExportZip
 }
 
 data class MonetizationState(
@@ -38,7 +37,7 @@ class SafeFallbackBillingService : ProBillingService {
         BillingStatus(
             available = false,
             isPro = false,
-            message = "Billing unavailable; Free mode remains active."
+            message = "Billing unavailable; trial mode active."
         )
 
     override val purchaseState: Flow<MonetizationState>

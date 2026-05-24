@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Lock Witness</string>
-    <string name="device_admin_description">Allows LockWitness to detect failed device unlock attempts when monitoring is enabled.</string>
+    <string name="device_admin_description">Allows Lock Witness to detect failed device unlock attempts when monitoring is enabled.</string>
 </resources>

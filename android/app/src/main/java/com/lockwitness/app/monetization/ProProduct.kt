@@ -31,13 +31,13 @@ object ProProducts {
         badge = "Best Value — Save ~44%"
     )
 
-    // Founder promo: $19.99. Standard price after promo period: $39.99.
     val LIFETIME = ProProduct(
         productId = ID_LIFETIME,
         type = ProProductType.ONE_TIME,
         displayName = "Lifetime Pro",
-        displayPrice = "$19.99",
-        note = "Founder price — increases to \$39.99 after launch promo"
+        displayPrice = "$39.99",
+        badge = "Founder",
+        note = "First 100 users: \$19.99. Standard price: \$39.99."
     )
 
     val ALL = listOf(MONTHLY, ANNUAL, LIFETIME)

@@ -37,7 +37,10 @@ Phase 0 repository control files and required folders verified on 2026-04-27.
 
 ## Unverified Features
 Cloud backend features.
-Video capture verified in app foreground via Diagnostics (3.1 MB MP4, 2026-05-20); foreground service path on failed unlock remains unverified. Location snapshot PASS confirmed via Diagnostics (warm GPS cache after outdoor trip); SUCCESS path in Room incident record deferred.
+Location snapshot PASS confirmed via Diagnostics (warm GPS cache after outdoor trip); SUCCESS path in Room incident record deferred.
+
+## Phase 18 User Verification (2026-05-23)
+Failed-unlock video capture via foreground service verified by owner (Randy) on physical device. Test: monitoring enabled, photo+video+location enabled, device locked, wrong PIN/password/pattern entered. Confirmed: incident created, photo captured, video captured, hashes written, export ZIP includes all evidence, ZIP hash files match exported media. User-reported: "I just tested, photo, video and location work as stated."
 History navigation, media fallback display, actual manual ZIP export UI, actual share/email chooser flow, actual ads/billing environment, and Diagnostics runtime actions remain unverified on device/emulator.
 Release-candidate runtime verification is in progress; device connectivity and app launch to dashboard are now device-verified (Phase 14-A, 2026-05-19). Remaining device verification is blocked pending Phase 14-B authorization.
 
@@ -74,6 +77,7 @@ Each phase record must include the relevant commit hash and whether a local ZIP 
 C:\Projects\LockWitness\backups\phase-17-after-20260520-093612.zip
 
 ## Last Verified Build
+2026-05-23: Phase 18 `.\gradlew.bat assembleDebug` — BUILD SUCCESSFUL, installed on RF8M3278JVE. Swipe navigation, diagnostics polish, biometric notice confirmed.
 2026-05-20: Phase 17 `.\gradlew.bat bundleRelease` — BUILD SUCCESSFUL, app-release.aab 3.18 MB, signed with lockwitness-release.jks.
 2026-05-20: Phase 17 `.\gradlew.bat assembleRelease` — BUILD SUCCESSFUL, app-release.apk 1.52 MB (minified).
 2026-05-20: Phase 17 `.\gradlew.bat testDebugUnitTest` — 53 tests, 0 failures, 0 errors.

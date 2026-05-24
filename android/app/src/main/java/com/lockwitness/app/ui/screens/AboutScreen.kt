@@ -78,7 +78,7 @@ fun AboutScreen(contentPadding: PaddingValues) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    SectionEyebrow("LockWitness")
+                    SectionEyebrow("Lock Witness")
                     Text(
                         text = "Version ${deviceInfo.appVersion}",
                         style = MaterialTheme.typography.titleMedium,
