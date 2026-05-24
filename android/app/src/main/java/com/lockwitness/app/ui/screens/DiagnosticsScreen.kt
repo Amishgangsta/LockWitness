@@ -92,7 +92,7 @@ fun DiagnosticsScreen(contentPadding: PaddingValues) {
     }
     val monetizationRepository = remember(context) { MonetizationRepository.create(context) }
     val settings by settingsRepository.settings.collectAsState(initial = SettingsState.Defaults)
-    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState(isPro = true, billingAvailable = false))
+    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
     val incidents by incidentRepository.getAllOrderedByTimestampDesc().collectAsState(initial = emptyList())
     val proFeatureGate = remember { ProFeatureGate() }
     val mapper = remember { DiagnosticMapper() }

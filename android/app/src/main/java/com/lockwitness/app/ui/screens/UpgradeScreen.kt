@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.ProductDetails
+import com.lockwitness.app.monetization.MonetizationRepository
 import com.lockwitness.app.monetization.MonetizationState
 import com.lockwitness.app.monetization.PlayBillingService
 import com.lockwitness.app.monetization.ProProduct
@@ -74,7 +75,8 @@ fun UpgradeScreen(
 ) {
     val context = LocalContext.current
     val billingService = remember(context) { PlayBillingService.getInstance(context) }
-    val monetizationState by billingService.purchaseState.collectAsState(initial = MonetizationState.Free)
+    val monetizationRepository = remember(context) { MonetizationRepository.create(context) }
+    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
     var productDetailsList by remember { mutableStateOf<List<ProductDetails>>(emptyList()) }
     var purchaseMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -107,10 +109,15 @@ fun UpgradeScreen(
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
+                val trialSubtitle = when {
+                    monetizationState.isInTrial -> "${monetizationState.trialDaysRemaining} days remaining in your trial"
+                    monetizationState.trialExpired -> "Trial ended — purchase to continue"
+                    else -> "Your device. Your evidence. Your control."
+                }
                 Text(
-                    text = "Your device. Your evidence. Your control.",
+                    text = trialSubtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = if (monetizationState.trialExpired) CautionAmber else TextSecondary
                 )
             }
         }

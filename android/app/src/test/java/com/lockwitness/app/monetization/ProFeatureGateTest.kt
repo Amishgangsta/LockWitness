@@ -9,30 +9,27 @@ class ProFeatureGateTest {
     private val gate = ProFeatureGate()
 
     @Test
-    fun freeModeKeepsCoreFreeButBlocksProFeatures() {
+    fun baseModeBlocksAllProFeatures() {
         val state = MonetizationState.Free
 
         assertFalse(gate.isAllowed(ProFeature.UnlimitedHistory, state))
         assertFalse(gate.isAllowed(ProFeature.VideoCapture, state))
         assertFalse(gate.isAllowed(ProFeature.LocationSnapshot, state))
         assertFalse(gate.isAllowed(ProFeature.ExportZip, state))
-        assertFalse(gate.isAllowed(ProFeature.NoAds, state))
     }
 
     @Test
-    fun proModeAllowsProFeaturesAndRemovesAds() {
+    fun proModeAllowsAllProFeatures() {
         val state = MonetizationState.Pro
 
         assertTrue(gate.isAllowed(ProFeature.UnlimitedHistory, state))
         assertTrue(gate.isAllowed(ProFeature.VideoCapture, state))
         assertTrue(gate.isAllowed(ProFeature.LocationSnapshot, state))
         assertTrue(gate.isAllowed(ProFeature.ExportZip, state))
-        assertTrue(gate.isAllowed(ProFeature.NoAds, state))
-        assertFalse(gate.shouldShowAds(state))
     }
 
     @Test
-    fun freeHistoryIsLimitedAndProHistoryIsUnlimited() {
+    fun historyLimitedInBaseMode_unlimitedInPro() {
         val incidents = (1..15).toList()
 
         assertEquals((1..10).toList(), gate.visibleHistory(incidents, MonetizationState.Free))
@@ -40,7 +37,11 @@ class ProFeatureGateTest {
     }
 
     @Test
-    fun freeUsersSeeAds() {
-        assertTrue(gate.shouldShowAds(MonetizationState.Free))
+    fun trialModeBlocksProFeatures() {
+        val state = MonetizationState(isPro = false, trialDaysRemaining = 5)
+
+        assertFalse(gate.isAllowed(ProFeature.VideoCapture, state))
+        assertFalse(gate.isAllowed(ProFeature.LocationSnapshot, state))
+        assertFalse(gate.isAllowed(ProFeature.ExportZip, state))
     }
 }

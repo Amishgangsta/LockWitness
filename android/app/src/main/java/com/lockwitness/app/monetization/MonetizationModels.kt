@@ -12,8 +12,12 @@ enum class ProFeature {
 
 data class MonetizationState(
     val isPro: Boolean = false,
-    val billingAvailable: Boolean = false
+    val billingAvailable: Boolean = false,
+    val trialDaysRemaining: Int? = null
 ) {
+    val isInTrial: Boolean get() = !isPro && trialDaysRemaining != null && trialDaysRemaining > 0
+    val trialExpired: Boolean get() = !isPro && trialDaysRemaining != null && trialDaysRemaining <= 0
+
     companion object {
         val Free = MonetizationState(isPro = false, billingAvailable = false)
         val Pro = MonetizationState(isPro = true, billingAvailable = true)

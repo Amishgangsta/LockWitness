@@ -31,9 +31,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,7 +50,6 @@ import com.lockwitness.app.data.SettingsRepository
 import com.lockwitness.app.data.SettingsState
 import com.lockwitness.app.data.incident.LockWitnessDatabase
 import com.lockwitness.app.data.incident.SecurityIncidentRepository
-import com.lockwitness.app.monetization.BannerAdPlaceholder
 import com.lockwitness.app.monetization.MonetizationRepository
 import com.lockwitness.app.monetization.MonetizationState
 import com.lockwitness.app.ui.components.ForensicCard
@@ -57,6 +58,7 @@ import com.lockwitness.app.ui.components.SectionEyebrow
 import com.lockwitness.app.ui.components.StatusPill
 import com.lockwitness.app.ui.theme.CardSurface
 import com.lockwitness.app.ui.theme.CautionAmber
+import com.lockwitness.app.ui.theme.DestructiveRed
 import com.lockwitness.app.ui.theme.GraphiteBg
 import com.lockwitness.app.ui.theme.ProOrange
 import com.lockwitness.app.ui.theme.SurfaceRaised
@@ -98,7 +100,11 @@ fun DashboardScreen(
 
     val settings by settingsRepository.settings.collectAsState(initial = SettingsState.Defaults)
     val incidents by incidentRepository.getAllOrderedByTimestampDesc().collectAsState(initial = emptyList())
-    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState(isPro = true, billingAvailable = false))
+    val monetizationState by monetizationRepository.state.collectAsState(initial = MonetizationState.Free)
+
+    LaunchedEffect(Unit) {
+        monetizationRepository.startTrialIfNotStarted()
+    }
 
     val recent = incidents.firstOrNull()
     val uiState = DashboardUiState(
@@ -144,8 +150,7 @@ internal fun DashboardContent(
         StatusCard(state = state)
         EvidenceModulesGrid(state = state, isPro = monetizationState.isPro)
         IntegrityCard(state = state)
-        PlanCard(isPro = monetizationState.isPro, onNavigateToUpgrade = onNavigateToUpgrade)
-        BannerAdPlaceholder(state = monetizationState)
+        PlanCard(monetizationState = monetizationState, onNavigateToUpgrade = onNavigateToUpgrade)
     }
 }
 
@@ -310,32 +315,63 @@ private fun IntegrityCard(state: DashboardUiState) {
 }
 
 @Composable
-private fun PlanCard(isPro: Boolean, onNavigateToUpgrade: () -> Unit) {
+private fun PlanCard(monetizationState: MonetizationState, onNavigateToUpgrade: () -> Unit) {
     ForensicCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(14.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (isPro) {
-                Icon(Icons.Outlined.VerifiedUser, contentDescription = null, tint = VerifiedGreen, modifier = Modifier.size(22.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Pro Active", style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                    Text("Full forensic evidence suite enabled", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            when {
+                monetizationState.isPro -> {
+                    Icon(Icons.Outlined.VerifiedUser, contentDescription = null, tint = VerifiedGreen, modifier = Modifier.size(22.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Pro Active", style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                        Text("Full forensic evidence suite enabled", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                    }
+                    StatusPill(text = "Pro", color = ProOrange)
                 }
-                StatusPill(text = "Pro", color = ProOrange)
-            } else {
-                Icon(Icons.Outlined.WorkspacePremium, contentDescription = null, tint = ProOrange, modifier = Modifier.size(24.dp))
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Pro: video + full history", style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.SemiBold)
-                    Text("GPS snapshots, full history, advanced export", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                monetizationState.trialExpired -> {
+                    Icon(Icons.Outlined.WorkspacePremium, contentDescription = null, tint = DestructiveRed, modifier = Modifier.size(24.dp))
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("Trial ended", style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                        Text("Purchase to unlock video, GPS, and full history", style = MaterialTheme.typography.labelSmall, color = DestructiveRed)
+                    }
+                    Button(
+                        onClick = onNavigateToUpgrade,
+                        colors = ButtonDefaults.buttonColors(containerColor = ProOrange, contentColor = TextPrimary),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                    ) {
+                        Text("Upgrade", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    }
                 }
-                Button(
-                    onClick = onNavigateToUpgrade,
-                    colors = ButtonDefaults.buttonColors(containerColor = ProOrange, contentColor = TextPrimary),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                ) {
-                    Text("Upgrade", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                monetizationState.isInTrial -> {
+                    Icon(Icons.Outlined.WorkspacePremium, contentDescription = null, tint = ProOrange, modifier = Modifier.size(24.dp))
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("Trial — ${monetizationState.trialDaysRemaining} days left", style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                        Text("Upgrade for video, GPS, and full history", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                    }
+                    Button(
+                        onClick = onNavigateToUpgrade,
+                        colors = ButtonDefaults.buttonColors(containerColor = ProOrange, contentColor = TextPrimary),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                    ) {
+                        Text("Upgrade", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    }
+                }
+                else -> {
+                    Icon(Icons.Outlined.WorkspacePremium, contentDescription = null, tint = ProOrange, modifier = Modifier.size(24.dp))
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("Pro: video + full history", style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                        Text("GPS snapshots, full history, advanced export", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                    }
+                    Button(
+                        onClick = onNavigateToUpgrade,
+                        colors = ButtonDefaults.buttonColors(containerColor = ProOrange, contentColor = TextPrimary),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                    ) {
+                        Text("Upgrade", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }

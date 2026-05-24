@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -25,10 +26,25 @@ class MonetizationRepository(
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         },
         billingService.purchaseState
-    ) { _, billingState ->
-        // Beta override: Pro granted to all users until Play Billing subscriptions are live.
-        // To enable real billing gating, replace this with: if (billingState.billingAvailable) billingState else MonetizationState(isPro = false, billingAvailable = false)
-        MonetizationState(isPro = true, billingAvailable = billingState.billingAvailable)
+    ) { prefs, billingState ->
+        val trialStartMs = prefs[Keys.TrialStartMs]
+        val trialDaysRemaining = trialStartMs?.let {
+            val remainingMs = it + TRIAL_DURATION_MS - System.currentTimeMillis()
+            (remainingMs / DAY_MS).toInt().coerceAtLeast(0)
+        }
+        MonetizationState(
+            isPro = billingState.isPro,
+            billingAvailable = billingState.billingAvailable,
+            trialDaysRemaining = trialDaysRemaining
+        )
+    }
+
+    suspend fun startTrialIfNotStarted() {
+        dataStore.edit { prefs ->
+            if (prefs[Keys.TrialStartMs] == null) {
+                prefs[Keys.TrialStartMs] = System.currentTimeMillis()
+            }
+        }
     }
 
     suspend fun refreshBillingStatus(): BillingStatus {
@@ -47,12 +63,20 @@ class MonetizationRepository(
         }
     }
 
+    suspend fun setLocalTrialStartForTesting(timestampMs: Long) {
+        dataStore.edit { prefs -> prefs[Keys.TrialStartMs] = timestampMs }
+    }
+
     private object Keys {
         val IsPro = booleanPreferencesKey("is_pro")
         val BillingAvailable = booleanPreferencesKey("billing_available")
+        val TrialStartMs = longPreferencesKey("trial_start_ms")
     }
 
     companion object {
+        private const val TRIAL_DURATION_MS = 7L * 24 * 60 * 60 * 1000
+        private const val DAY_MS = 24L * 60 * 60 * 1000
+
         fun create(context: Context): MonetizationRepository =
             MonetizationRepository(
                 dataStore = context.applicationContext.lockWitnessMonetizationDataStore,
