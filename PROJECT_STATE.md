@@ -77,7 +77,9 @@ Each phase record must include the relevant commit hash and whether a local ZIP 
 C:\Projects\LockWitness\backups\phase-17-after-20260520-093612.zip
 
 ## Last Verified Build
-2026-05-23: Phase 18 `.\gradlew.bat assembleDebug` — BUILD SUCCESSFUL, installed on RF8M3278JVE. Swipe navigation, diagnostics polish, biometric notice confirmed.
+2026-05-23: Phase 18 `.\gradlew.bat bundleRelease --rerun-tasks` — BUILD SUCCESSFUL, app-release.aab 3.6 MB, signed. Includes trial timer, no-ads, all Phase 18 fixes. 50/50 tasks executed.
+2026-05-23: Phase 18 `.\gradlew.bat testDebugUnitTest` — 55 tests, 0 failures, 0 errors.
+2026-05-23: Phase 18 `.\gradlew.bat assembleDebug` — BUILD SUCCESSFUL, installed on RF8M3278JVE. Swipe navigation, diagnostics polish, biometric notice, trial code confirmed.
 2026-05-20: Phase 17 `.\gradlew.bat bundleRelease` — BUILD SUCCESSFUL, app-release.aab 3.18 MB, signed with lockwitness-release.jks.
 2026-05-20: Phase 17 `.\gradlew.bat assembleRelease` — BUILD SUCCESSFUL, app-release.apk 1.52 MB (minified).
 2026-05-20: Phase 17 `.\gradlew.bat testDebugUnitTest` — 53 tests, 0 failures, 0 errors.
@@ -115,7 +117,13 @@ C:\Projects\LockWitness\backups\phase-17-after-20260520-093612.zip
 Release candidate is blocked for production submission until runtime verification, production monetization setup, and final privacy/legal review are completed.
 
 ## Next Authorized Phase
-Phase 17 complete. Remaining owner actions: activate Device Admin on release build, create Play Console product IDs, upload AAB to internal testing, verify billing flow, host privacy policy, complete Data safety form, submit for review. Next code phase requires explicit authorization: Phase 18 (production AdMob ID replacement).
+All code phases complete. No further code work authorized. Remaining items are owner actions in Play Console:
+1. Create 3 products (pro_monthly $2.99, pro_annual $19.99, pro_lifetime $39.99)
+2. Add license testing account; verify billing flow on internal testing track
+3. Add contact info to privacy policy draft; host at public URL; enter URL in Play Console
+4. Complete Data safety form in Play Console
+5. Upload app-release.aab to internal testing track; take screenshots; finalize store listing
+6. Submit for review
 
 ## Initial Bootstrap Backup
 C:\Projects\LockWitness\backups\phase-0-initial-20260427-171116.zip
