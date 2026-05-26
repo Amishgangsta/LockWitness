@@ -84,13 +84,12 @@ If this policy changes materially, the updated policy will be posted at the poli
 
 ## Contact
 
-Developer contact: [Insert developer contact email]
+Developer contact: invictusmediaprime@gmail.com
 
-Mailing address: [Insert developer mailing address if required by applicable law]
+Mailing address: Available upon request.
 
 ## Review Notes Before Publishing
 
-- Replace `[Insert developer contact email]` and `[Insert developer mailing address]`.
 - Host this policy at a stable public URL and enter that URL in Play Console.
 - Verify pricing figures match the live Play Console product configuration before publishing.
 - Complete the Play Console Data safety form against the exact release build.
