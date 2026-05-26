@@ -38,11 +38,19 @@ class DiagnosticMapper {
             toggleCheck("Video capture", input.settings.videoCaptureEnabled),
             toggleCheck("Location capture", input.settings.locationCaptureEnabled),
             booleanCheck("Local timeline", input.historyAvailable, "Available", "Unavailable"),
-            booleanCheck("Export", input.exportAvailable, "Available", "Unavailable"),
+            DiagnosticCheck(
+                name = "Export",
+                result = if (input.exportAvailable) DiagnosticResult.PASS else DiagnosticResult.UNAVAILABLE,
+                detail = if (input.exportAvailable) "Available" else "Unavailable (Pro)"
+            ),
             DiagnosticCheck(
                 name = "Plan",
                 result = DiagnosticResult.PASS,
-                detail = if (input.monetizationState.isPro) "Pro" else "Free"
+                detail = when {
+                    input.monetizationState.isPro -> "Pro"
+                    input.monetizationState.isInTrial -> "Trial — ${input.monetizationState.trialDaysRemaining}d left"
+                    else -> "Free"
+                }
             )
         )
 

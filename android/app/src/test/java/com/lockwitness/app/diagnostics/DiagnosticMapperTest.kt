@@ -31,7 +31,7 @@ class DiagnosticMapperTest {
         )
 
         assertEquals(DiagnosticResult.WARNING, checks.first { it.name == "Video capture" }.result)
-        assertEquals(DiagnosticResult.FAIL, checks.first { it.name == "Export" }.result)
+        assertEquals(DiagnosticResult.UNAVAILABLE, checks.first { it.name == "Export" }.result)
         assertEquals("Free", checks.first { it.name == "Plan" }.detail)
     }
 
@@ -42,8 +42,18 @@ class DiagnosticMapperTest {
         assertEquals("Pro", checks.first { it.name == "Plan" }.detail)
     }
 
+    @Test
+    fun trialModeMapsToTrialDetailAndExportUnavailable() {
+        val trial = MonetizationState(isPro = false, billingAvailable = true, trialDaysRemaining = 5)
+        val checks = mapper.checks(baseInput(monetizationState = trial, exportAvailable = false))
+
+        assertEquals("Trial — 5d left", checks.first { it.name == "Plan" }.detail)
+        assertEquals(DiagnosticResult.UNAVAILABLE, checks.first { it.name == "Export" }.result)
+    }
+
     private fun baseInput(
-        monetizationState: MonetizationState = MonetizationState.Free
+        monetizationState: MonetizationState = MonetizationState.Free,
+        exportAvailable: Boolean = true
     ): DiagnosticInput =
         DiagnosticInput(
             isDeviceAdminActive = true,
@@ -51,7 +61,7 @@ class DiagnosticMapperTest {
             isLocationPermissionGranted = true,
             settings = SettingsState.Defaults,
             historyAvailable = true,
-            exportAvailable = true,
+            exportAvailable = exportAvailable,
             monetizationState = monetizationState,
             appVersion = "1.0",
             androidVersion = "Android",
